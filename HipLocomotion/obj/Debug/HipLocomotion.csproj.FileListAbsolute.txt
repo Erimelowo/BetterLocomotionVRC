@@ -4,3 +4,9 @@ C:\Users\mario\Desktop\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.Assem
 C:\Users\mario\Desktop\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.csproj.CoreCompileInputs.cache
 C:\Users\mario\Desktop\HipLocomotion\Output\HipLocomotion.dll
 C:\Users\mario\Desktop\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.dll
+C:\Users\mario\Documents\GitHub\HipLocomotion\Output\HipLocomotion.dll
+C:\Users\mario\Documents\GitHub\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.csproj.AssemblyReference.cache
+C:\Users\mario\Documents\GitHub\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.AssemblyInfoInputs.cache
+C:\Users\mario\Documents\GitHub\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.AssemblyInfo.cs
+C:\Users\mario\Documents\GitHub\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.csproj.CoreCompileInputs.cache
+C:\Users\mario\Documents\GitHub\HipLocomotion\HipLocomotion\obj\Debug\HipLocomotion.dll
