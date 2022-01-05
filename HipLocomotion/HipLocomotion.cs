@@ -19,7 +19,7 @@ using VRC.SDKBase;
 [assembly: AssemblyCopyright("Created by " + BuildInfo.Author)]
 [assembly: MelonInfo(typeof(Main), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author)]
 [assembly: MelonGame("VRChat", "VRChat")]
-[assembly: MelonColor(ConsoleColor.DarkMagenta)]
+[assembly: MelonColor(ConsoleColor.Magenta)]
 [assembly: MelonOptionalDependencies("UIExpansionKit")]
 
 namespace HipLocomotion
@@ -28,7 +28,7 @@ namespace HipLocomotion
     {
         public const string Name = "HipLocomotion";
         public const string Author = "Erimel";
-        public const string Version = "1.1";
+        public const string Version = "1.1.1";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -103,18 +103,16 @@ namespace HipLocomotion
         }
         // Substitute the direction from the original method with our own
         public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
+        public static VRCPlayer GetLocalPlayer() => VRCPlayer.field_Internal_Static_VRCPlayer_0;
 
-        
-
-        
         // Gets the hip transform
         private static Transform hipTransform;
-        private static Transform HipTransform 
+        private static Transform HipTransform
         {
             get
             {
                 if (hipTransform == null)
-                    hipTransform = VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
+                    hipTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
                 return hipTransform;
             }
         }
@@ -125,7 +123,7 @@ namespace HipLocomotion
             get
             {
                 if (chestTransform == null)
-                    chestTransform = VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
+                    chestTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
                 return chestTransform;
             }
         }
@@ -140,17 +138,6 @@ namespace HipLocomotion
                 return headTransform;
             }
         }
-        //Gets the VRC_AnimationController to know if the player is in FBT.
-        private static VRC_AnimationController animationController;
-        private static VRC_AnimationController AnimationController
-        {
-            get
-            {
-                if (animationController == null)
-                    animationController = VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRC_AnimationController_0;
-                return animationController;
-            }
-        }
         //Gets the VRCMotionState to know if the player is crouching or prone.
         private static VRCMotionState playerMotionState;
         private static VRCMotionState PlayerMotionState
@@ -158,41 +145,49 @@ namespace HipLocomotion
             get
             {
                 if (playerMotionState == null)
-                    playerMotionState = VRCPlayer.field_Internal_Static_VRCPlayer_0.gameObject.GetComponent<VRCMotionState>();
+                    playerMotionState = GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
                 return playerMotionState;
             }
         }
-        
         // Fixes the game's original direction to match the preferred one
         private static Vector3 CalculateDirection(Vector3 headVelo)
         {
-            switch (LocomotionMode.Value)
+            if (headVelo.magnitude > 0)
             {
-                case Locomotion.Hip:
-                    if((HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && AnimationController.field_Private_Boolean_1){ //Hip locomotion
-                        Vector3 hipVelo = Vector3.ProjectOnPlane(HipTransform.right, Vector3.up).normalized * Input.GetAxis("Horizontal") * VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.GetStrafeSpeed() + Vector3.ProjectOnPlane(HipTransform.forward, Vector3.up).normalized * Input.GetAxis("Vertical") * VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.GetRunSpeed();
-                        if (PlayerMotionState.field_Private_Single_0 < 0.4f) hipVelo *= 0.1f; //player prone at 40% of height: tenth speed
-                        else if (PlayerMotionState.field_Private_Single_0 < 0.65f) hipVelo *= 0.5f; //player crouching at 65% of height: half speed
-                        return Quaternion.FromToRotation(HipTransform.up, Vector3.up) * HipTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HipTransform.forward), Vector3.up))) * hipVelo;
-                    }
-                    else //Head locomotion
-                    {
+                switch (LocomotionMode.Value)
+                {
+                    case Locomotion.Hip:
+                        if ((HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)))
+                        { //Hip locomotion
+                            Vector3 hipVelo = Vector3.ProjectOnPlane(HipTransform.right, Vector3.up).normalized * Input.GetAxis("Horizontal") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed() + Vector3.ProjectOnPlane(HipTransform.forward, Vector3.up).normalized * Input.GetAxis("Vertical") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+                            if (PlayerMotionState.field_Private_Single_0 < 0.4f) hipVelo *= 0.1f; //player prone at 40% of height: tenth speed
+                            else if (PlayerMotionState.field_Private_Single_0 < 0.65f) hipVelo *= 0.5f; //player crouching at 65% of height: half speed
+                            return Quaternion.FromToRotation(HipTransform.up, Vector3.up) * HipTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HipTransform.forward), Vector3.up))) * hipVelo;
+                        }
+                        else //Head locomotion
+                        {
+                            return Quaternion.FromToRotation(HeadTransform.up, Vector3.up) * HeadTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
+                        }
+                    case Locomotion.Chest:
+                        if ((HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)))
+                        { //Chest locomotion
+                            Vector3 chestVelo = Vector3.ProjectOnPlane(ChestTransform.right, Vector3.up).normalized * Input.GetAxis("Horizontal") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed() + Vector3.ProjectOnPlane(ChestTransform.forward, Vector3.up).normalized * Input.GetAxis("Vertical") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+                            if (PlayerMotionState.field_Private_Single_0 < 0.4f) chestVelo *= 0.1f; //player prone at 40% of height: tenth speed
+                            else if (PlayerMotionState.field_Private_Single_0 < 0.65f) chestVelo *= 0.5f; //player crouching at 65% of height: half speed
+                            return Quaternion.FromToRotation(ChestTransform.up, Vector3.up) * ChestTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, ChestTransform.forward), Vector3.up))) * chestVelo;
+                        }
+                        else //Head locomotion
+                        {
+                            return Quaternion.FromToRotation(HeadTransform.up, Vector3.up) * HeadTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
+                        }
+                    case Locomotion.Head:
+                    default: //Head locomotion
                         return Quaternion.FromToRotation(HeadTransform.up, Vector3.up) * HeadTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
-                    }
-                case Locomotion.Chest:
-                    if ((HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && AnimationController.field_Private_Boolean_1){ //Chest locomotion
-                        Vector3 chestVelo = Vector3.ProjectOnPlane(ChestTransform.right, Vector3.up).normalized * Input.GetAxis("Horizontal") * VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.GetStrafeSpeed() + Vector3.ProjectOnPlane(ChestTransform.forward, Vector3.up).normalized * Input.GetAxis("Vertical") * VRCPlayer.field_Internal_Static_VRCPlayer_0.field_Private_VRCPlayerApi_0.GetRunSpeed();
-                        if (PlayerMotionState.field_Private_Single_0 < 0.4f) chestVelo *= 0.1f; //player prone at 40% of height: tenth speed
-                        else if (PlayerMotionState.field_Private_Single_0 < 0.65f) chestVelo *= 0.5f; //player crouching at 65% of height: half speed
-                        return Quaternion.FromToRotation(ChestTransform.up, Vector3.up) * ChestTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, ChestTransform.forward), Vector3.up))) * chestVelo;
-                    }
-                    else //Head locomotion
-                    {
-                        return Quaternion.FromToRotation(HeadTransform.up, Vector3.up) * HeadTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
-                    }
-                case Locomotion.Head:
-                default: //Head locomotion
-                    return Quaternion.FromToRotation(HeadTransform.up, Vector3.up) * HeadTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
+                }
+            }
+            else
+            {
+                return headVelo;
             }
         }
     }
