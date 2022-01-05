@@ -28,7 +28,7 @@ namespace HipLocomotion
     {
         public const string Name = "HipLocomotion";
         public const string Author = "Erimel";
-        public const string Version = "1.1.2";
+        public const string Version = "1.1.3";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -40,7 +40,6 @@ namespace HipLocomotion
 
         internal static MelonPreferences_Category Category;
         public static MelonPreferences_Entry<Locomotion> LocomotionMode;
-        private static MelonPreferences_Entry<bool> HeadLocomotionIfProne;
 
         // Wait for Ui Init so XRDevice.isPresent is defined
         public override void OnApplicationStart()
@@ -59,7 +58,6 @@ namespace HipLocomotion
         {
             var category = Category = MelonPreferences.CreateCategory("HipLocomotion", "HipLocomotion");
             LocomotionMode = category.CreateEntry("LocomotionMode", Locomotion.Hip, "Locomotion Mode");
-            HeadLocomotionIfProne = category.CreateEntry("HeadLocomotionProne", true, "Use head locomotion when prone");
         }
         private static void WaitForUiInit()
         {
@@ -156,8 +154,8 @@ namespace HipLocomotion
             {
                 return LocomotionMode.Value switch
                 {
-                    Locomotion.Hip when (HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(HipTransform),//TODO: Use tracker transform instead of bone transform
-                    Locomotion.Chest when (HeadLocomotionIfProne.Value == false || PlayerMotionState.field_Private_Single_0 > 0.4f) && (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(ChestTransform),//TODO: Use tracker transform instead of bone transform
+                    Locomotion.Hip when (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(HipTransform),//TODO: Use tracker transform instead of bone transform
+                    Locomotion.Chest when (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(ChestTransform),//TODO: Use tracker transform instead of bone transform
                     _ => HeadLoco(headVelo),
                 };
             }

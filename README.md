@@ -2,11 +2,10 @@
 A Hip Locomotion mod for VRChat using MelonLoader.
 
 ## Features
-- Enable hip locomotion in VRChat without a "head bias" (go faster when your joystick goes the same direction as your head).
-- Can choose to use head locomotion when prone/crawling.
+- Choose between head, hip or chest locomotion. This allows hip/chest-based locomotion, making you move towards your hip/chest instead of your head.
 
-## Dependencies
-- UIExpansionKit (https://github.com/knah/VRCMods)
+## Dependency
+- UIExpansionKit (https://github.com/knah/VRCMods) to change settings.
 
 ## Special Thanks
 - Davivi (BetterDirection mod: https://github.com/d-magit/VRC-Mods)
