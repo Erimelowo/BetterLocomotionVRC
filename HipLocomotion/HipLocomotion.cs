@@ -28,7 +28,7 @@ namespace HipLocomotion
     {
         public const string Name = "HipLocomotion";
         public const string Author = "Erimel";
-        public const string Version = "1.1.3";
+        public const string Version = "1.2";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -36,6 +36,8 @@ namespace HipLocomotion
     public class Main : MelonMod
     {
         private static MelonMod Instance;
+
+        private static Main m_Instance;
         private static HarmonyLib.Harmony HInstance => Instance.HarmonyInstance;
 
         internal static MelonPreferences_Category Category;
@@ -45,6 +47,7 @@ namespace HipLocomotion
         public override void OnApplicationStart()
         {
             Instance = this;
+            m_Instance = this;
 
             WaitForUiInit();
 
@@ -53,6 +56,14 @@ namespace HipLocomotion
             Settings();
 
             OnPreferencesSaved();
+
+            MethodsResolver.ResolveMethods();
+
+            if (MethodsResolver.RestoreTrackingAfterCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.RestoreTrackingAfterCalibration, null, new HarmonyLib.HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_RestoreTrackingAfterCalibration)));
+
+            if (MethodsResolver.IKTweaks_ApplyStoredCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.IKTweaks_ApplyStoredCalibration, new HarmonyLib.HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_RestoreTrackingAfterCalibration)), null);
         }
         private static void Settings()
         {
@@ -65,7 +76,7 @@ namespace HipLocomotion
                 typeof(UIXManager).GetMethod("OnApplicationStart").Invoke(null, null);
             else
             {
-                MelonLogger.Warning("UiExpansionKit (UIX) was not detected. Using coroutine to wait for UiInit. Please consider installing UIX.");
+                MelonLogger.Warning("UIExpansionKit (UIX) was not detected. Using coroutine to wait for UiInit. Please consider installing UIX.");
                 static IEnumerator OnUiManagerInit()
                 {
                     while (VRCUiManager.prop_VRCUiManager_0 == null)
@@ -84,7 +95,6 @@ namespace HipLocomotion
                 MelonLogger.Msg("XRDevice detected. Initializing...");
                 try
                 {
-
                     foreach (var info in typeof(VRCMotionState).GetMethods().Where(method =>
                         method.Name.Contains("Method_Public_Void_Vector3_Single_") && !method.Name.Contains("PDM")))
                         HInstance.Patch(info, new HarmonyMethod(typeof(Main).GetMethod(nameof(Prefix))));
@@ -99,33 +109,106 @@ namespace HipLocomotion
             else
                 MelonLogger.Warning("Mod is VR-Only.");
         }
-        // Substitute the direction from the original method with our own
-        public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
-        public static VRCPlayer GetLocalPlayer() => VRCPlayer.field_Internal_Static_VRCPlayer_0;
+        public static bool CheckIfInFBT() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint;
 
-        // Gets the hip transform
-        private static Transform hipTransform;
-        private static Transform HipTransform
+        public static VRCPlayer GetLocalPlayer() => VRCPlayer.field_Internal_Static_VRCPlayer_0;
+        public static SteamVR_ControllerManager GetSteamVRControllerManager()
         {
-            get
+            SteamVR_ControllerManager l_result = null;
+            if (VRCInputManager.field_Private_Static_Dictionary_2_InputMethod_VRCInputProcessor_0?.Count > 0)
             {
-                if (hipTransform == null)
-                    hipTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
-                return hipTransform;
+                VRCInputProcessor l_input = null;
+                l_input = VRCInputManager.field_Private_Static_Dictionary_2_InputMethod_VRCInputProcessor_0[VRCInputManager.InputMethod.Vive];
+                if (l_input != null)
+                {
+                    VRCInputProcessorVive l_viveInput = l_input.TryCast<VRCInputProcessorVive>();
+                    if (l_viveInput != null)
+                        l_result = l_viveInput.field_Private_SteamVR_ControllerManager_0;
+                }
             }
+            return l_result;
         }
-        // Gets the chest transform
-        private static Transform chestTransform;
-        private static Transform ChestTransform
+        static public void VRCTrackingManager_RestoreTrackingAfterCalibration() => m_Instance?.OnCalibrationEnd();
+        void OnCalibrationEnd()
         {
-            get
+            IsInFBT = true;
+            if (GetTracker(HumanBodyBones.Hips) != null)
             {
-                if (chestTransform == null)
-                    chestTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
-                return chestTransform;
+                HipTransform = GetTracker(HumanBodyBones.Hips);
+                HipToHead = HipTransform.rotation.eulerAngles.y - HeadTransform.rotation.eulerAngles.y;
             }
+            else
+            {
+                HipTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
+                HipToHead = 0;
+            }
+            if (GetTracker(HumanBodyBones.Chest) != null && GetTracker(HumanBodyBones.Chest) != HipTransform)
+            {
+                ChestTransform = GetTracker(HumanBodyBones.Chest);
+                ChestToHead = ChestTransform.rotation.eulerAngles.y - HeadTransform.rotation.eulerAngles.y;
+            }
+            else
+            {
+                ChestTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
+                ChestToHead = 0;
+            }
+            OffsetHip = new();
+            OffsetHip.transform.position = HipTransform.position;
+            OffsetHip.transform.rotation = HipTransform.rotation;
+            OffsetHip.transform.parent = HipTransform;
+            OffsetHip.transform.rotation *= Quaternion.Euler(0, -HipToHead, 0);
+            OffsetChest = new();
+            OffsetChest.transform.position = ChestTransform.position;
+            OffsetChest.transform.rotation = ChestTransform.rotation;
+            OffsetChest.transform.parent = ChestTransform;
+            OffsetChest.transform.rotation *= Quaternion.Euler(0, -ChestToHead, 0);
         }
-        // Gets the head transform
+        static Transform GetTracker(HumanBodyBones bodyPart)
+        {
+            var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
+            for (int i = 0; i < puckArray.Length - 2; i++)
+            {
+                if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
+                    return puckArray[i + 2].transform;
+            }
+            return HeadTransform;
+        }
+        public static readonly HumanBodyBones[] linkedBones =
+        {
+            HumanBodyBones.Hips, HumanBodyBones.Chest
+        };
+        static HumanBodyBones FindAssignedBone(Transform trackerTransform)
+        {
+            HumanBodyBones result = HumanBodyBones.LastBone;
+            // Find nearest bone
+            float distance = float.MaxValue;
+            foreach (HumanBodyBones bone in linkedBones)
+            {
+                Transform l_boneTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(bone);
+                if (l_boneTransform != null)
+                {
+                    float l_distanceToPuck = Vector3.Distance(l_boneTransform.position, trackerTransform.position);
+                    if (l_distanceToPuck < distance)
+                    {
+                        distance = l_distanceToPuck;
+                        result = bone;
+                    }
+                }
+            }
+            return result;
+        }
+
+        private static int isInFBTTimer;
+
+        private static bool IsInFBT;
+
+        private static float HipToHead, ChestToHead;
+
+        private static Transform HipTransform, ChestTransform;
+
+        private static GameObject OffsetHip, OffsetChest;
+
+        //Gets the head transform
         private static Transform headTransform;
         private static Transform HeadTransform
         {
@@ -147,15 +230,25 @@ namespace HipLocomotion
                 return playerMotionState;
             }
         }
+
+        // Substitute the direction from the original method with our own
+        public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
+
         // Fixes the game's original direction to match the preferred one
         private static Vector3 CalculateDirection(Vector3 headVelo)
         {
             if (headVelo.magnitude > 0)
             {
+                isInFBTTimer++;
+                if(isInFBTTimer > 100) //Checks if player is no longer in FBT each 2 seconds
+                {
+                    isInFBTTimer = 0;
+                    IsInFBT = CheckIfInFBT();
+                }
                 return LocomotionMode.Value switch
                 {
-                    Locomotion.Hip when (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(HipTransform),//TODO: Use tracker transform instead of bone transform
-                    Locomotion.Chest when (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.SixPoint || (GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 == IkController.IkType.FourPoint && PlayerMotionState.field_Private_Single_0 > 0.65f)) => TrackerLoco(ChestTransform),//TODO: Use tracker transform instead of bone transform
+                    Locomotion.Hip when IsInFBT && HipTransform != null => TrackerLoco(OffsetHip.transform),
+                    Locomotion.Chest when IsInFBT && ChestTransform != null => TrackerLoco(OffsetChest.transform),
                     _ => HeadLoco(headVelo),
                 };
             }
@@ -163,10 +256,18 @@ namespace HipLocomotion
         }
         static Vector3 TrackerLoco(Transform trackerTransform)
         {
-            Vector3 trackerVelo = Vector3.ProjectOnPlane(trackerTransform.right, Vector3.up).normalized * Input.GetAxis("Horizontal") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed() + Vector3.ProjectOnPlane(trackerTransform.forward, Vector3.up).normalized * Input.GetAxis("Vertical") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+            Vector3 forward = trackerTransform.forward;
+            forward.y = 0;
+            Vector3 right = trackerTransform.right;
+            right.y = 0;
+
+            Vector3 trackerVelo = right.normalized * Input.GetAxis("Horizontal") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed() 
+                    + forward.normalized * Input.GetAxis("Vertical") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+
             if (PlayerMotionState.field_Private_Single_0 < 0.4f) trackerVelo *= 0.1f; //player prone at 40% of height: tenth speed
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) trackerVelo *= 0.5f; //player crouching at 65% of height: half speed
-            return Quaternion.FromToRotation(ChestTransform.up, Vector3.up) * ChestTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, ChestTransform.forward), Vector3.up))) * trackerVelo;
+
+            return Quaternion.FromToRotation(trackerTransform.up, Vector3.up) * trackerTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, trackerTransform.forward), Vector3.up))) * trackerVelo;
         }
         static Vector3 HeadLoco(Vector3 headVelo)
         {
