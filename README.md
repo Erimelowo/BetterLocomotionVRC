@@ -1,5 +1,5 @@
 # HipLocomotion
-A Hip Locomotion mod for VRChat using MelonLoader.
+A hip/chest locomotion mod for VRChat using MelonLoader.
 
 ## Features
 - Choose between head, hip or chest locomotion. This allows hip/chest-based locomotion, making you move towards your hip/chest instead of your head.
