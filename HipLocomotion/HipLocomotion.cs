@@ -28,7 +28,7 @@ namespace HipLocomotion
     {
         public const string Name = "HipLocomotion";
         public const string Author = "Erimel";
-        public const string Version = "1.2";
+        public const string Version = "1.2.1";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -135,33 +135,25 @@ namespace HipLocomotion
             if (GetTracker(HumanBodyBones.Hips) != null)
             {
                 HipTransform = GetTracker(HumanBodyBones.Hips);
-                HipToHead = HipTransform.rotation.eulerAngles.y - HeadTransform.rotation.eulerAngles.y;
             }
             else
             {
                 HipTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
-                HipToHead = 0;
             }
             if (GetTracker(HumanBodyBones.Chest) != null && GetTracker(HumanBodyBones.Chest) != HipTransform)
             {
                 ChestTransform = GetTracker(HumanBodyBones.Chest);
-                ChestToHead = ChestTransform.rotation.eulerAngles.y - HeadTransform.rotation.eulerAngles.y;
             }
             else
             {
                 ChestTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
-                ChestToHead = 0;
             }
             OffsetHip = new();
-            OffsetHip.transform.position = HipTransform.position;
-            OffsetHip.transform.rotation = HipTransform.rotation;
             OffsetHip.transform.parent = HipTransform;
-            OffsetHip.transform.rotation *= Quaternion.Euler(0, -HipToHead, 0);
+            OffsetHip.transform.rotation = Quaternion.Euler(0, headTransform.rotation.eulerAngles.y, 0);
             OffsetChest = new();
-            OffsetChest.transform.position = ChestTransform.position;
-            OffsetChest.transform.rotation = ChestTransform.rotation;
             OffsetChest.transform.parent = ChestTransform;
-            OffsetChest.transform.rotation *= Quaternion.Euler(0, -ChestToHead, 0);
+            OffsetChest.transform.rotation = Quaternion.Euler(0, headTransform.rotation.eulerAngles.y, 0);
         }
         static Transform GetTracker(HumanBodyBones bodyPart)
         {
@@ -201,8 +193,6 @@ namespace HipLocomotion
         private static int isInFBTTimer;
 
         private static bool IsInFBT;
-
-        private static float HipToHead, ChestToHead;
 
         private static Transform HipTransform, ChestTransform;
 
