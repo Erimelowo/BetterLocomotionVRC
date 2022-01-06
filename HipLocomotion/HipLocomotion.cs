@@ -253,11 +253,9 @@ namespace HipLocomotion
 
             Vector3 trackerVelo = right.normalized * Input.GetAxis("Horizontal") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed() 
                     + forward.normalized * Input.GetAxis("Vertical") * GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
-
             if (PlayerMotionState.field_Private_Single_0 < 0.4f) trackerVelo *= 0.1f; //player prone at 40% of height: tenth speed
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) trackerVelo *= 0.5f; //player crouching at 65% of height: half speed
-
-            return Quaternion.FromToRotation(trackerTransform.up, Vector3.up) * trackerTransform.rotation * Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, trackerTransform.forward), Vector3.up))) * trackerVelo;
+            return trackerVelo;
         }
         static Vector3 HeadLoco(Vector3 headVelo)
         {

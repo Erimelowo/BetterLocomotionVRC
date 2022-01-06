@@ -5,6 +5,10 @@ using HarmonyLib;
 using UnhollowerRuntimeLib.XrefScans;
 using MelonLoader;
 
+/*
+ * Code by SDraw
+ */
+
 namespace HipLocomotion
 {
     static class MethodsResolver
