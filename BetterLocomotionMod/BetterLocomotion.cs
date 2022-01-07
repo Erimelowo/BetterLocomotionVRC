@@ -69,7 +69,7 @@ namespace BetterLocomotion
         private static void InitializeSettings()
         {
             var category = Category = MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
-            LocomotionMode = category.CreateEntry("LocomotionMode", Locomotion.Head, "Locomotion Mode");
+            LocomotionMode = category.CreateEntry("LocomotionMode", Locomotion.Head, "Locomotion mode");
             ForceUseBones = category.CreateEntry("ForceUseBones", false, "Use bones instead of trackers (not recommended)");
         }
         private static void WaitForUiInit()
