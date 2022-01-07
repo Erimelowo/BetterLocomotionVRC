@@ -22,5 +22,8 @@ Continuation of [BetterDirections](https://github.com/d-magit/VRC-Mods)
 
 ## Installation
 **Before installing: Modding is against VRChat's ToS. Be careful while using this as it modifies player movement! We are not responsible for any punishments.**  
-Install [MelonLoader](https://melonwiki.xyz/#/) and drop [BetterLocomotion.dll](https://github.com/Louka3000/BetterLocomotion/releases/latest/download/BetterLocomotion.dll) in your mods folder. You will also need to install [UIExpansionKit](https://github.com/knah/VRCMods/releases/latest/download/UIExpansionKit.dll).  
-You can also use [VRCMelonAssistant](https://github.com/knah/VRCMelonAssistant/releases/latest/download/VRCMelonAssistant.exe) to simplify installation.
+
+Install [MelonLoader](https://melonwiki.xyz/#/) and drop [BetterLocomotion.dll](https://github.com/Louka3000/BetterLocomotion/releases/latest/download/BetterLocomotion.dll) in your mods folder.  
+You will also want to install [UIExpansionKit](https://github.com/knah/VRCMods/releases/latest/download/UIExpansionKit.dll).  
+
+**OR** you can use [VRCMelonAssistant](https://github.com/knah/VRCMelonAssistant/releases/latest/download/VRCMelonAssistant.exe) to automatically take care of the install process.
