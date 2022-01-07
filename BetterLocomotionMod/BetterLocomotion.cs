@@ -12,9 +12,9 @@ using Main = BetterLocomotion.Main;
 using VRC.SDKBase;
 
 /*A lot of code was taken from the BetterDirections mod
-//Special thanks to d-magit
-//https://github.com/d-magit/VRC-Mods 
-*/
+ *Special thanks to Davi and AxisAngle
+ *BetterDirections: https://github.com/d-magit/VRC-Mods 
+ */
 
 [assembly: AssemblyCopyright("Created by " + BuildInfo.Author)]
 [assembly: MelonInfo(typeof(Main), BuildInfo.Name, BuildInfo.Version, BuildInfo.Author)]
@@ -54,7 +54,7 @@ namespace BetterLocomotion
 
             OnPreferencesSaved();
 
-            // Patches
+            // Patches (to know when player finishes calibrating)
             MethodsResolver.ResolveMethods(); 
             if (MethodsResolver.RestoreTrackingAfterCalibration != null)
                 HarmonyInstance.Patch(MethodsResolver.RestoreTrackingAfterCalibration, null, new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_RestoreTrackingAfterCalibration)));
@@ -89,7 +89,7 @@ namespace BetterLocomotion
             }
         }
 
-        // Apply the patch
+        // Apply the patch (to overwrite player movement)
         public static void VRChat_OnUiManagerInit()
         {
             if (XRDevice.isPresent)
@@ -227,9 +227,9 @@ namespace BetterLocomotion
         }
         static Vector3 CalculateLoco(Transform trackerTransform, Vector3 headVelo) //Thanks AxisAngle for the logic for the angles
         {
-            //Undo VRChat's locomotion to get the movement independant of where the player is looking at.
+            //Undoes VRChat's locomotion to get the movement independant of where the player is looking at.
             Vector3 inputDirection = Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
-            //Calculate locomotion with better directions according to the reference (tracker or head) we want.
+            //Calculates locomotion with better directions according to the reference (tracker or head) we want.
             return Quaternion.FromToRotation(trackerTransform.transform.up, Vector3.up) * trackerTransform.transform.rotation * inputDirection;
         }
     }
