@@ -1,17 +1,17 @@
 {
   "format": 1,
   "restore": {
-    "C:\\Users\\mario\\Documents\\GitHub\\HipLocomotion\\HipLocomotion\\HipLocomotion.csproj": {}
+    "C:\\Users\\mario\\Documents\\GitHub\\BetterLocomotion\\BetterLocomotionMod\\BetterLocomotion.csproj": {}
   },
   "projects": {
-    "C:\\Users\\mario\\Documents\\GitHub\\HipLocomotion\\HipLocomotion\\HipLocomotion.csproj": {
+    "C:\\Users\\mario\\Documents\\GitHub\\BetterLocomotion\\BetterLocomotionMod\\BetterLocomotion.csproj": {
       "version": "1.0.0",
       "restore": {
-        "projectUniqueName": "C:\\Users\\mario\\Documents\\GitHub\\HipLocomotion\\HipLocomotion\\HipLocomotion.csproj",
-        "projectName": "HipLocomotion",
-        "projectPath": "C:\\Users\\mario\\Documents\\GitHub\\HipLocomotion\\HipLocomotion\\HipLocomotion.csproj",
+        "projectUniqueName": "C:\\Users\\mario\\Documents\\GitHub\\BetterLocomotion\\BetterLocomotionMod\\BetterLocomotion.csproj",
+        "projectName": "BetterLocomotion",
+        "projectPath": "C:\\Users\\mario\\Documents\\GitHub\\BetterLocomotion\\BetterLocomotionMod\\BetterLocomotion.csproj",
         "packagesPath": "C:\\Users\\mario\\.nuget\\packages\\",
-        "outputPath": "C:\\Users\\mario\\Documents\\GitHub\\HipLocomotion\\HipLocomotion\\obj\\",
+        "outputPath": "C:\\Users\\mario\\Documents\\GitHub\\BetterLocomotion\\BetterLocomotionMod\\obj\\",
         "projectStyle": "PackageReference",
         "fallbackFolders": [
           "C:\\Program Files (x86)\\Microsoft Visual Studio\\Shared\\NuGetPackages"

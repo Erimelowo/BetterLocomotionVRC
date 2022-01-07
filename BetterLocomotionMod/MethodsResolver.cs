@@ -9,17 +9,29 @@ using MelonLoader;
  * Code by SDraw
  */
 
-namespace HipLocomotion
+namespace BetterLocomotion
 {
     static class MethodsResolver
     {
         static MethodInfo ms_prepareForCalibration = null;
         static MethodInfo ms_restoreTrackingAfterCalibration = null;
-        static MethodInfo ms_calibrate = null; // IKTweaks
         static MethodInfo ms_applyStoredCalibration = null; // IKTweaks
 
         public static void ResolveMethods()
         {
+            // void VRCTrackingManager.PrepareForCalibration()
+            if (ms_prepareForCalibration == null)
+            {
+                var l_methods = typeof(VRCTrackingManager).GetMethods().Where(m =>
+                    m.Name.StartsWith("Method_Public_Static_Void_") && (m.ReturnType == typeof(void)) && !m.GetParameters().Any() &&
+                    XrefScanner.XrefScan(m).Where(x => (x.Type == XrefType.Global) && x.ReadAsObject().ToString().Contains("trying to calibrate")).Any() &&
+                    XrefScanner.UsedBy(m).Where(x => (x.Type == XrefType.Method) && (x.TryResolve()?.DeclaringType == typeof(VRCFbbIkController))).Any()
+                );
+
+                if (l_methods.Any())
+                    ms_prepareForCalibration = l_methods.First();
+            }
+
             // void VRCTracking.RestoreTrackingAfterCalibration()
             if (ms_restoreTrackingAfterCalibration == null)
             {
@@ -40,7 +52,7 @@ namespace HipLocomotion
             // Task IKTweaks.CalibrationManager.ApplyStoredCalibration(GameObject avatarRoot, string avatarId)
             if (ms_applyStoredCalibration == null)
             {
-                foreach (MelonLoader.MelonMod l_mod in MelonLoader.MelonHandler.Mods)
+                foreach (MelonMod l_mod in MelonHandler.Mods)
                 {
                     if (l_mod.Info.Name == "IKTweaks")
                     {

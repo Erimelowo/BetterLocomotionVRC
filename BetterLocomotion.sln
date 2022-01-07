@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.31410.357
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "HipLocomotion", "HipLocomotion\HipLocomotion.csproj", "{E8315B3B-2483-405D-956B-106E37CC2E3D}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "BetterLocomotion", "BetterLocomotionMod\BetterLocomotion.csproj", "{909A3C0C-9BA3-4629-B62F-5629057BD358}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -11,15 +11,15 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{E8315B3B-2483-405D-956B-106E37CC2E3D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{E8315B3B-2483-405D-956B-106E37CC2E3D}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{E8315B3B-2483-405D-956B-106E37CC2E3D}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{E8315B3B-2483-405D-956B-106E37CC2E3D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{909A3C0C-9BA3-4629-B62F-5629057BD358}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{909A3C0C-9BA3-4629-B62F-5629057BD358}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{909A3C0C-9BA3-4629-B62F-5629057BD358}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{909A3C0C-9BA3-4629-B62F-5629057BD358}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {EC289741-4C6C-42B4-A115-4D1C18BD88DD}
+		SolutionGuid = {512F1F5B-8D2B-4B4F-8485-6D89C6AAC4BC}
 	EndGlobalSection
 EndGlobal
