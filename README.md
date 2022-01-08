@@ -4,7 +4,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 
 ## Features
 - **Fixes the inconvenience that happens because of Euler angles when moving while looking up**, usually while laying down or cuddling, for example.
-- **Allows you to set a threshold to compensate for joystick drift**.
+- **Allows you to set a threshold for movement to compensate for joystick drift**.
 - **Choose between head, hip or chest locomotion.** This allows hip or chest locomotion, allowing you move towards your hip or chest instead of your head. *Just like Decamove but without the VRChat "head bias".*
 - Compatible with [IKTweaks](https://github.com/knah/VRCMods#iktweaks).
 - Hip and chest locomotion is compatible with 4-point tracking, 6-point tracking or more (using IKTweaks).
