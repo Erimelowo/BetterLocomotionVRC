@@ -4,13 +4,16 @@ Continuation of [BetterDirections](https://github.com/d-magit/VRC-Mods)
 
 ## Features
 - **Fixes the inconvenience that happens because of Euler angles when moving while looking up**, usually while laying down or cuddling, for example.
+- **Allows you to set a threshold to compensate for joystick drift**.
 - **Choose between head, hip or chest locomotion.** This allows hip or chest locomotion, allowing you move towards your hip or chest instead of your head. *Just like Decamove but without the VRChat "head bias".*
 - Compatible with [IKTweaks](https://github.com/knah/VRCMods#iktweaks).
 - Hip and chest locomotion is compatible with 4-point tracking, 6-point tracking or more (using IKTweaks).
 
 ## Settings
 - **Locomotion mode**: which reference should be used for locomotion (head, hip or chest)
-- **Use bones instead of trackers (not recommended)**: uses the rotation of your avatar's hip or chest when using hip/chest locomotion instead of the SteamVR tracker. Will not work on avatars with locomotion animations or inverted hip so only use if hip/chest tracker doesn't get detected properly.
+- **Use bones instead of trackers (not recommended)**: uses the rotation of your avatar's hip or chest when using hip/chest locomotion instead of the SteamVR tracker. Will not work on avatars with locomotion animations or inverted hip. **Only use if hip/chest tracker doesn't get detected properly.**
+- **Enable joystick drift compensation**: won't move your avatar when your josyick's inclination is below a certain *threshold*.
+- **Joystick drift amount (0-1)**: *that certain threshold*. 0 = no compensation (no change), 1 = full compensation (need to push joystick furthest to register movement). Only has effect when "Enable joystick drift compensation" is enabled.
 
 ## Dependency
 - [UIExpansionKit](https://github.com/knah/VRCMods#ui-expansion-kit) to change settings.
