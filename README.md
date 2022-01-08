@@ -1,6 +1,6 @@
 # BetterLocomotion
 A mod to enhance locomotion for VRChat using MelonLoader.  
-Continuation of [BetterDirections](https://github.com/d-magit/VRC-Mods)
+Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 
 ## Features
 - **Fixes the inconvenience that happens because of Euler angles when moving while looking up**, usually while laying down or cuddling, for example.
