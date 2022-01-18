@@ -28,7 +28,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.0.0";
+        public const string Version = "1.1.0";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -63,17 +63,14 @@ namespace BetterLocomotion
 
         private static MelonPreferences_Entry<Locomotion> _locomotionMode;
         private static MelonPreferences_Entry<bool> _forceUseBones;
-        private static MelonPreferences_Entry<bool> _hasJoystickDrift;
-        private static MelonPreferences_Entry<float> _joystickDriftAmount;
+        private static MelonPreferences_Entry<float> _joystickThreshold;
         private static void InitializeSettings()
         {
             MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
-            _hasJoystickDrift = MelonPreferences.CreateEntry("BetterLocomotion", "HasJoystickDrift", false, "Enable joystick drift compensation");
-            _joystickDriftAmount = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickDriftAmount", 0.3f, "Joystick drift amount (0-1)");
-
             _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBones", false, "Use bones instead of trackers (not recommended)");
+            _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick drift threshold (0-1)");
         }
 
         private static void WaitForUiInit()
@@ -130,8 +127,8 @@ namespace BetterLocomotion
             return lResult;
         }
 
-        private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.
-            field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
+        private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 
+            is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
 
         private static void VRCTrackingManager_RestoreTrackingAfterCalibration() //Gets the trackers or bones and creates the offset GameObjects
         {
@@ -203,20 +200,24 @@ namespace BetterLocomotion
             _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform
                 .Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
+        private static VRCMotionState _playerMotionState;
+        private static VRCMotionState PlayerMotionState => //Gets the VRCMotionState to know if the player is crouching or prone.
+            _playerMotionState ??= GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
+
         // Substitute the direction from the original method with our own
         public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
 
         // Fixes the game's original direction to match the preferred one
         private static Vector3 CalculateDirection(Vector3 rawVelo)
         {
-            if (_hasJoystickDrift.Value && Mathf.Clamp(_joystickDriftAmount.Value, 0, 0.98f) > (Math.Abs(Input.GetAxisRaw("Vertical")) + Math.Abs(Input.GetAxisRaw("Horizontal"))))
+            if (rawVelo == Vector3.zero)
                 return Vector3.zero;
 
             var @return = _locomotionMode.Value switch
             {
-                Locomotion.Hip when _isInFbt && _hipTransform != null => CalculateLocomotion(_offsetHip.transform, rawVelo),
-                Locomotion.Chest when _isInFbt && _chestTransform != null => CalculateLocomotion(_offsetChest.transform, rawVelo),
-                _ => CalculateLocomotion(HeadTransform, rawVelo),
+                Locomotion.Hip when _isInFbt && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
+                Locomotion.Chest when _isInFbt && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
+                _ => CalculateLocomotion(HeadTransform),
             };
 
             _isInFbtTimer++;
@@ -227,11 +228,61 @@ namespace BetterLocomotion
             return @return;
         }
 
-        private static Vector3 CalculateLocomotion(Component trackerTransform, Vector3 headVelo) //Thanks AxisAngle for the logic for the angles
+        // We write a support function to do linear mappings
+        private static float LinearMap(float x0, float x1, float y0, float y1, float x)
         {
-            //Undo VRChat's locomotion to get the movement independant of where the player is looking at.
-            Vector3 inputDirection = Quaternion.Inverse(Quaternion.LookRotation(Vector3.Cross(Vector3.Cross(Vector3.up, HeadTransform.forward), Vector3.up))) * headVelo;
-            //Calculate locomotion with better directions according to the reference (tracker or head) we want.
+            float y = ((x1 - x) * y0 + (x - x0) * y1) / (x1 - x0);
+            return y;
+        }
+
+        // We write a support function to raycast from the center against an oval
+        private static float TimeToOval(float w, float h, float dx, float dy)
+        {
+            // compute time of intersection time between ray d and the oval
+            float t = 1.0f / Mathf.Sqrt(dx * dx / (w * w) + dy * dy / (h * h));
+            return t;
+        }
+
+        // d is the hardware per-axis deadzone. VRChat sets it to 0.19
+        private static float MaxInputMagnitude(float x, float y)
+        {
+            x = Math.Abs(x);
+            y = Math.Abs(y);
+            float d = 0.19f;
+            return (float)((Math.Sqrt((1 - d * d) * (x * x + y * y) + 2 * d * d * x * y) - d * (x + y)) / ((1 - d) * Math.Sqrt(x * x + y * y)));
+        }
+
+        private static Vector3 CalculateLocomotion(Transform trackerTransform) //Thanks AxisAngle for the code!
+        {
+            float inputX = Input.GetAxisRaw("Horizontal"), inputY = Input.GetAxisRaw("Vertical");
+            float inputMag = Mathf.Sqrt(inputX * inputX + inputY * inputY);
+
+            // Early escape to avoid division by 0
+            if (inputMag == 0) return Vector3.zero;
+
+            // Now we modulate the input magnitude to observe a deadzone. in0 and out0 are the minimum input and minimum output.
+            float in0 = Mathf.Clamp(_joystickThreshold.Value, 0, 0.96f), in1 = MaxInputMagnitude(inputX, inputY);
+            float out0 = 0, out1 = 1.0f;
+
+            float inputMod = Mathf.Clamp(LinearMap(in0, in1, out0, out1, inputMag), out0, out1);
+
+            // Now we must compute the size of the speed boundary oval
+            float speedMod;
+            if (PlayerMotionState.field_Private_Single_0 < 0.4f) speedMod = 0.1f;
+            else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
+            else speedMod = 1.0f;
+
+            float strafeSpeed = GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed();
+            float runSpeed = GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+
+            float ovalWidth = inputMod * speedMod * strafeSpeed;
+            float ovalHeight = inputMod * speedMod * runSpeed;
+
+            // And now compute the multiplier which moves the input onto the oval
+            float t = TimeToOval(ovalWidth, ovalHeight, inputX, inputY);
+
+            // And finally apply t to get a point on the oval
+            Vector3 inputDirection = t * (inputX * Vector3.right + inputY * Vector3.forward);
             return Quaternion.FromToRotation(trackerTransform.transform.up, Vector3.up) * trackerTransform.transform.rotation * inputDirection;
         }
     }
