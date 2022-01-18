@@ -200,10 +200,6 @@ namespace BetterLocomotion
             _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform
                 .Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
-        private static VRCMotionState _playerMotionState;
-        private static VRCMotionState PlayerMotionState => //Gets the VRCMotionState to know if the player is crouching or prone.
-            _playerMotionState ??= GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
-
         // Substitute the direction from the original method with our own
         public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
 
@@ -268,6 +264,7 @@ namespace BetterLocomotion
 
             // Now we must compute the size of the speed boundary oval
             float speedMod;
+            VRCMotionState PlayerMotionState = GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
             if (PlayerMotionState.field_Private_Single_0 < 0.4f) speedMod = 0.1f;
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
             else speedMod = 1.0f;
