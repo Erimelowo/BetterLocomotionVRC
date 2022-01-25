@@ -9,6 +9,7 @@ using MelonLoader;
 using VRC.Animation;
 using BuildInfo = BetterLocomotion.BuildInfo;
 using Main = BetterLocomotion.Main;
+using VRC.SDKBase;
 
 /*
  * A lot of code was taken from the BetterDirections mod
@@ -269,8 +270,9 @@ namespace BetterLocomotion
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
             else speedMod = 1.0f;
 
-            float strafeSpeed = GetLocalPlayer().field_Private_VRCPlayerApi_0.GetStrafeSpeed();
-            float runSpeed = GetLocalPlayer().field_Private_VRCPlayerApi_0.GetRunSpeed();
+            VRCPlayerApi PlayerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
+            float strafeSpeed = PlayerApi.GetStrafeSpeed();
+            float runSpeed = PlayerApi.GetRunSpeed();
 
             float ovalWidth = inputMod * speedMod * strafeSpeed;
             float ovalHeight = inputMod * speedMod * runSpeed;
