@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.0";
+        public const string Version = "1.1.1";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -228,16 +228,14 @@ namespace BetterLocomotion
         // We write a support function to do linear mappings
         private static float LinearMap(float x0, float x1, float y0, float y1, float x)
         {
-            float y = ((x1 - x) * y0 + (x - x0) * y1) / (x1 - x0);
-            return y;
+            return ((x1 - x) * y0 + (x - x0) * y1) / (x1 - x0);
         }
 
         // We write a support function to raycast from the center against an oval
         private static float TimeToOval(float w, float h, float dx, float dy)
         {
             // compute time of intersection time between ray d and the oval
-            float t = 1.0f / Mathf.Sqrt(dx * dx / (w * w) + dy * dy / (h * h));
-            return t;
+            return 1.0f / Mathf.Sqrt(dx * dx / (w * w) + dy * dy / (h * h));
         }
 
         // d is the hardware per-axis deadzone. VRChat sets it to 0.19
@@ -262,6 +260,8 @@ namespace BetterLocomotion
             float out0 = 0, out1 = 1.0f;
 
             float inputMod = Mathf.Clamp(LinearMap(in0, in1, out0, out1, inputMag), out0, out1);
+
+            if (inputMod == 0) return Vector3.zero;
 
             // Now we must compute the size of the speed boundary oval
             float speedMod;
