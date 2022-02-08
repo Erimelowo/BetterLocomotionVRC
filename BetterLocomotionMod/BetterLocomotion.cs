@@ -165,14 +165,10 @@ namespace BetterLocomotion
         }
 
         private static readonly HumanBodyBones[] LinkedBones = {
-            HumanBodyBones.Hips,
+            HumanBodyBones.Hips, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot,
+            HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm,
+            HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg,
             HumanBodyBones.Chest,
-            HumanBodyBones.LeftFoot,
-            HumanBodyBones.LeftUpperLeg,
-            HumanBodyBones.RightFoot,
-            HumanBodyBones.RightUpperLeg,
-            HumanBodyBones.LeftUpperArm,
-            HumanBodyBones.RightUpperArm
         };
 
         private static Transform GetTracker(HumanBodyBones bodyPart) //Gets the SteamVR tracker for a certain bone
