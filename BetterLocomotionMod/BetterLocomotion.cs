@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.1";
+        public const string Version = "1.1.2";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -164,12 +164,21 @@ namespace BetterLocomotion
             };
         }
 
-        private static readonly HumanBodyBones[] LinkedBones = { HumanBodyBones.Hips, HumanBodyBones.Chest };
+        private static readonly HumanBodyBones[] LinkedBones = {
+            HumanBodyBones.Hips,
+            HumanBodyBones.Chest,
+            HumanBodyBones.LeftFoot,
+            HumanBodyBones.LeftUpperLeg,
+            HumanBodyBones.RightFoot,
+            HumanBodyBones.RightUpperLeg,
+            HumanBodyBones.LeftUpperArm,
+            HumanBodyBones.RightUpperArm
+        };
 
         private static Transform GetTracker(HumanBodyBones bodyPart) //Gets the SteamVR tracker for a certain bone
         {
             var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
-            for (var i = 0; i < puckArray.Length - 2; i++)
+            for (int i = 0; i < puckArray.Length - 2; i++)
             {
                 if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
                     return puckArray[i + 2].transform;
