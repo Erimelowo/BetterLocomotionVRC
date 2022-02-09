@@ -11,8 +11,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 
 ## Settings
 - **Locomotion mode**: which reference should be used for locomotion (head, hip or chest)
-- **Use bones instead of trackers (not recommended)**: uses the rotation of your avatar's hip or chest when using hip/chest locomotion instead of the SteamVR tracker. Will not work on avatars with locomotion animations or inverted hip. **Only use if hip/chest tracker doesn't get detected properly.**
-- **Joystick drift threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
+- **Joystick threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
 
 ## Dependency
 - [UIExpansionKit](https://github.com/knah/VRCMods#ui-expansion-kit) to change settings.

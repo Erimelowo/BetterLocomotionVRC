@@ -70,8 +70,8 @@ namespace BetterLocomotion
             MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
-            _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBones", false, "Use bones instead of trackers (not recommended)");
-            _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick drift threshold (0-1)");
+            _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBonesLegacy", false, null, null, true);
+            _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
         }
 
         private static void WaitForUiInit()
