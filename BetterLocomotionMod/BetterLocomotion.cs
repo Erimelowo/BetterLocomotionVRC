@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.2";
+        public const string Version = "1.1.3";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -51,13 +51,19 @@ namespace BetterLocomotion
             OnPreferencesSaved();
 
             // Patches
-            MethodsResolver.ResolveMethods();
+            MethodsResolver.ResolveMethods(Logger);
+            if (MethodsResolver.PrepareForCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.PrepareForCalibration, null,
+                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_StartCalibration)));
+            if (MethodsResolver.IKTweaks_Calibrate != null)
+                HarmonyInstance.Patch(MethodsResolver.IKTweaks_Calibrate, null,
+                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_StartCalibration)));
             if (MethodsResolver.RestoreTrackingAfterCalibration != null)
                 HarmonyInstance.Patch(MethodsResolver.RestoreTrackingAfterCalibration, null,
-                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_RestoreTrackingAfterCalibration)));
-            if (MethodsResolver.IKTweaksApplyStoredCalibration != null)
-                HarmonyInstance.Patch(MethodsResolver.IKTweaksApplyStoredCalibration,
-                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_RestoreTrackingAfterCalibration)));
+                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_FinishCalibration)));
+            if (MethodsResolver.IKTweaks_ApplyStoredCalibration != null)
+                HarmonyInstance.Patch(MethodsResolver.IKTweaks_ApplyStoredCalibration, null,
+                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_FinishCalibration)));
 
             Logger.Msg("Successfully loaded!");
         }
@@ -65,13 +71,19 @@ namespace BetterLocomotion
         private static MelonPreferences_Entry<Locomotion> _locomotionMode;
         private static MelonPreferences_Entry<bool> _forceUseBones;
         private static MelonPreferences_Entry<float> _joystickThreshold;
+        private static MelonPreferences_Entry<bool> _lolimotion;
+        private static MelonPreferences_Entry<float> _lolimotionMinimum;
+        private static MelonPreferences_Entry<float> _lolimotionMaximum;
         private static void InitializeSettings()
         {
             MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
+            _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBonesLegacy", false, null, null, true);
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
-            _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBonesLegacy", false, null, null, true);
             _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
+            _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)"); //name by Patchuuri
+            _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
+            _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.2f, "Lolimotion: maximum height");
         }
 
         private static void WaitForUiInit()
@@ -128,12 +140,22 @@ namespace BetterLocomotion
             return lResult;
         }
 
-        private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 
-            is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
+        private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
+        private static float GetAvatarScaledSpeed() {
+            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.75f);
+            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 2.5f);
+            return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
+        }
 
-        private static void VRCTrackingManager_RestoreTrackingAfterCalibration() //Gets the trackers or bones and creates the offset GameObjects
+        private static void VRCTrackingManager_StartCalibration() // Use head locomotion while calibrating.
+        {
+            _isCalibrating = true;
+        }
+        private static void VRCTrackingManager_FinishCalibration() //Gets the trackers or bones and creates the offset GameObjects
         {
             _isInFbt = true;
+            _isCalibrating = false;
+            _avatarScaledSpeed = GetAvatarScaledSpeed();
 
             var getTrackerHips = GetTracker(HumanBodyBones.Hips);
             _hipTransform = getTrackerHips == null || _forceUseBones.Value
@@ -198,13 +220,13 @@ namespace BetterLocomotion
             return result;
         }
 
-        private static bool _isInFbt;
-        private static int _isInFbtTimer;
+        private static bool _isInFbt, _isCalibrating;
+        private static int _checkStuffTimer;
+        private static float _avatarScaledSpeed;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform;
         private static Transform HeadTransform => //Gets the head transform
-            _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform
-                .Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
+            _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform.Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
         // Substitute the direction from the original method with our own
         public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
@@ -217,15 +239,16 @@ namespace BetterLocomotion
 
             var @return = _locomotionMode.Value switch
             {
-                Locomotion.Hip when _isInFbt && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
-                Locomotion.Chest when _isInFbt && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
+                Locomotion.Hip when _isInFbt && !_isCalibrating && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
+                Locomotion.Chest when _isInFbt && !_isCalibrating && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
                 _ => CalculateLocomotion(HeadTransform),
             };
 
-            _isInFbtTimer++;
-            if (_isInFbtTimer <= 100) return @return;
-            _isInFbtTimer = 0;
+            _checkStuffTimer++;
+            if (_checkStuffTimer <= 100) return @return;
+            _checkStuffTimer = 0;
             _isInFbt = CheckIfInFbt();
+            _avatarScaledSpeed = GetAvatarScaledSpeed();
 
             return @return;
         }
@@ -274,6 +297,7 @@ namespace BetterLocomotion
             if (PlayerMotionState.field_Private_Single_0 < 0.4f) speedMod = 0.1f;
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
             else speedMod = 1.0f;
+            if (_lolimotion.Value) speedMod *= _avatarScaledSpeed;
 
             VRCPlayerApi PlayerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
             float strafeSpeed = PlayerApi.GetStrafeSpeed();
