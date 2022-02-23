@@ -6,12 +6,18 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - **Fixes the inconvenience that happens because of Euler angles when moving while looking up**, usually while laying down or cuddling, for example.
 - **Allows you to set a threshold for movement to compensate for joystick drift** while keeping that smooth acceleration effect.
 - **Choose between head, hip or chest locomotion.** This allows hip or chest locomotion, allowing you move towards your hip or chest instead of your head. *Just like Decamove but without the VRChat "head bias".*
+- **Lolimotion**: option to slow down your movement speed according to the height of your avatar.
 - Compatible with [IKTweaks](https://github.com/knah/VRCMods#iktweaks).
 - Hip and chest locomotion is compatible with 4-point tracking, 6-point tracking or more (using IKTweaks).
 
-## Settings
+## Settings descriptions
 - **Locomotion mode**: which reference should be used for locomotion (head, hip or chest)
 - **Joystick threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
+- **Lolimotion (scale speed to height)**: toggles Lolimotion. Lolimotion is able to slow you down according to the height of your avatar.
+- **Lolimotion: minimum height**: value at which Lolimotion will stop slowing down your avatar. Default: 0.5
+- **Lolimotion: maximum height**: height at which Lolimotion will start slowing you down. Also is used to scale slowing. Default: 1.2  
+   Feel free to experiment with values for Lolimotion. Speed with Lolimotion = (Avatar height clamped according to minimum and maximum) / maximum. Everything in meters.  
+   Example: (0.3 clamped from 0.5 and 1.2 = 0.5) / 1.2 = 41.6%
 
 ## Dependency
 - [UIExpansionKit](https://github.com/knah/VRCMods#ui-expansion-kit) to change settings.
