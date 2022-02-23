@@ -15,9 +15,13 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - **Joystick threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
 - **Lolimotion (scale speed to height)**: toggles Lolimotion. Lolimotion is able to slow you down according to the height of your avatar.
 - **Lolimotion: minimum height**: value at which Lolimotion will stop slowing down your avatar. Default: 0.5
-- **Lolimotion: maximum height**: height at which Lolimotion will start slowing you down. Also is used to scale slowing. Default: 1.2  
+- **Lolimotion: maximum height**: height at which Lolimotion will start slowing you down. Also is used to scale slowing. Default: 1.1  
    Feel free to experiment with values for Lolimotion. Speed with Lolimotion = (Avatar height clamped according to minimum and maximum) / maximum. Everything in meters.  
-   Example: (0.3 clamped from 0.5 and 1.2 = 0.5) / 1.2 = 41.6%
+   Example: (0.3 clamped from 0.5 and 1.1 = 0.5) / 1.1 = 45.5%
+
+## Troubleshooting
+- Hip tracker isn't recognized properly: try chest locomotion. The mod may think your hip tracker is actually a chest tracker.  
+- Hip or Chest locomotion is offset: recalibrate, this is due to using a universal calibration mod like IKTweaks, FBTSaver or emm. You can also just reset your avatar via the radial menu.
 
 ## Dependency
 - [UIExpansionKit](https://github.com/knah/VRCMods#ui-expansion-kit) to change settings.

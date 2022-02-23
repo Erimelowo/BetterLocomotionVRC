@@ -83,7 +83,7 @@ namespace BetterLocomotion
             _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
             _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)"); //name by Patchuuri
             _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
-            _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.2f, "Lolimotion: maximum height");
+            _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.1f, "Lolimotion: maximum height");
         }
 
         private static void WaitForUiInit()
@@ -142,8 +142,8 @@ namespace BetterLocomotion
 
         private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
         private static float GetAvatarScaledSpeed() {
-            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.75f);
-            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 2.5f);
+            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.7f);
+            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 3f);
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
         }
 
@@ -222,7 +222,7 @@ namespace BetterLocomotion
 
         private static bool _isInFbt, _isCalibrating;
         private static int _checkStuffTimer;
-        private static float _avatarScaledSpeed;
+        private static float _avatarScaledSpeed = 1;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform;
         private static Transform HeadTransform => //Gets the head transform
