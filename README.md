@@ -30,6 +30,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - Davi's [BetterDirection](https://github.com/d-magit/VRC-Mods) mod (original mod)
 - [AxisAngle](https://twitter.com/DonaldFReynolds) (for the logic with angles/movement)
 - SDraw's [Calibration Lines Visualizer](https://github.com/SDraw/ml_mods) mod (code to find SteamVR trackers)
+- Patchuuri for naming Lolimotion :3
 
 ## Installation
 **Before installing: Modding is against VRChat's ToS. Be careful while using this as it modifies player movement! We are not responsible for any punishments.**  
