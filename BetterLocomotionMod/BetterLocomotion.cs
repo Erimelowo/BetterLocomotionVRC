@@ -186,7 +186,7 @@ namespace BetterLocomotion
             HumanBodyBones.Hips, HumanBodyBones.LeftFoot, HumanBodyBones.RightFoot,
             HumanBodyBones.LeftLowerArm, HumanBodyBones.RightLowerArm,
             HumanBodyBones.LeftLowerLeg, HumanBodyBones.RightLowerLeg,
-            HumanBodyBones.Chest,
+            HumanBodyBones.Chest
         };
 
         private static Transform GetTracker(HumanBodyBones bodyPart) //Gets the SteamVR tracker for a certain bone

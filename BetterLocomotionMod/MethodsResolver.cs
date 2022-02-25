@@ -113,9 +113,5 @@ namespace BetterLocomotion
         {
             get => ms_applyStoredCalibration;
         }
-        public static MethodInfo IKTweaks_SavedCalibration
-        {
-            get => ms_savedCalibration;
-        }
     }
 }
