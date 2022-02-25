@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.3";
+        public const string Version = "1.1.4";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -69,7 +69,6 @@ namespace BetterLocomotion
         }
 
         private static MelonPreferences_Entry<Locomotion> _locomotionMode;
-        private static MelonPreferences_Entry<bool> _forceUseBones;
         private static MelonPreferences_Entry<float> _joystickThreshold;
         private static MelonPreferences_Entry<bool> _lolimotion;
         private static MelonPreferences_Entry<float> _lolimotionMinimum;
@@ -77,7 +76,6 @@ namespace BetterLocomotion
         private static void InitializeSettings()
         {
             MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
-            _forceUseBones = MelonPreferences.CreateEntry("BetterLocomotion", "ForceUseBonesLegacy", false, null, null, true);
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
             _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
@@ -158,12 +156,10 @@ namespace BetterLocomotion
             _avatarScaledSpeed = GetAvatarScaledSpeed();
 
             var getTrackerHips = GetTracker(HumanBodyBones.Hips);
-            _hipTransform = getTrackerHips == null || _forceUseBones.Value
-                            ? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips)
-                            : getTrackerHips;
+            _hipTransform = getTrackerHips ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
 
             var getTrackerChest = GetTracker(HumanBodyBones.Chest);
-            _chestTransform = getTrackerChest == null || getTrackerChest == _hipTransform || _forceUseBones.Value
+            _chestTransform = getTrackerChest == null || getTrackerChest == _hipTransform
                 ? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest)
                 : getTrackerChest;
 

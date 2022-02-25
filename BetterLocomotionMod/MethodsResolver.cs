@@ -19,7 +19,6 @@ namespace BetterLocomotion
         private static MethodInfo ms_restoreTrackingAfterCalibration;
         private static MethodInfo ms_calibrate; // IKTweaks
         private static MethodInfo ms_applyStoredCalibration; // IKTweaks
-        private static MethodInfo ms_savedCalibration; // IKTweaks
 
         public static void ResolveMethods(MelonLogger.Instance loggerInstance)
         {

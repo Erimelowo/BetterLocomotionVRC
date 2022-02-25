@@ -15,10 +15,6 @@
 			<HintPath>$(MelonManaged)\Assembly-CSharp.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
-		<Reference Include="ActionMenuApi">
-			<HintPath>$(MelonManaged)\..\..\Mods\ActionMenuApi.dll</HintPath>
-			<Private>False</Private>
-		</Reference>
 		<Reference Include="Il2Cppmscorlib">
 			<HintPath>$(MelonManaged)\Il2Cppmscorlib.dll</HintPath>
 			<Private>False</Private>
