@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.3";
+        public const string Version = "1.1.4";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -145,6 +145,14 @@ namespace BetterLocomotion
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
         }
 
+        private void Update()
+        {
+            if (_isCalibrating)
+            {
+                getTrackerHip = GetTracker(HumanBodyBones.Hips);
+                getTrackerChest = GetTracker(HumanBodyBones.Chest);
+            }
+        }
         private static void VRCTrackingManager_StartCalibration() // Use head locomotion while calibrating.
         {
             _isCalibrating = true;
@@ -155,10 +163,7 @@ namespace BetterLocomotion
             _isCalibrating = false;
             _avatarScaledSpeed = GetAvatarScaledSpeed();
 
-            var getTrackerHips = GetTracker(HumanBodyBones.Hips);
-            _hipTransform = getTrackerHips ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
-
-            var getTrackerChest = GetTracker(HumanBodyBones.Chest);
+            _hipTransform = getTrackerHip ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
             _chestTransform = getTrackerChest == null || getTrackerChest == _hipTransform
                 ? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest)
                 : getTrackerChest;
@@ -220,7 +225,7 @@ namespace BetterLocomotion
         private static int _checkStuffTimer;
         private static float _avatarScaledSpeed = 1;
         private static GameObject _offsetHip, _offsetChest;
-        private static Transform _headTransform, _hipTransform, _chestTransform;
+        private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
         private static Transform HeadTransform => //Gets the head transform
             _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform.Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
