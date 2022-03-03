@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.4";
+        public const string Version = "1.1.5";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -144,17 +144,18 @@ namespace BetterLocomotion
             float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 3f);
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
         }
-
-        private void Update()
+        public override void OnLateUpdate()
         {
             if (_isCalibrating)
             {
+                _CalibrationSavingSaverTimer++;
                 getTrackerHip = GetTracker(HumanBodyBones.Hips);
                 getTrackerChest = GetTracker(HumanBodyBones.Chest);
             }
         }
         private static void VRCTrackingManager_StartCalibration() // Use head locomotion while calibrating.
         {
+            _CalibrationSavingSaverTimer = 0;
             _isCalibrating = true;
         }
         private static void VRCTrackingManager_FinishCalibration() //Gets the trackers or bones and creates the offset GameObjects
@@ -168,23 +169,26 @@ namespace BetterLocomotion
                 ? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest)
                 : getTrackerChest;
 
-            var rotation = Quaternion.FromToRotation(_headTransform.up, Vector3.up) * _headTransform.rotation;
-            _offsetHip = new GameObject
+            Quaternion rotation = Quaternion.FromToRotation(_headTransform.up, Vector3.up) * _headTransform.rotation;
+            if (_CalibrationSavingSaverTimer > 5 || _offsetHip == null)
             {
-                transform =
+                _offsetHip = new GameObject
+                {
+                    transform =
                 {
                     parent = _hipTransform,
                     rotation = rotation
                 }
-            };
-            _offsetChest = new GameObject
-            {
-                transform =
+                };
+                _offsetChest = new GameObject
+                {
+                    transform =
                 {
                     parent = _chestTransform,
                     rotation = rotation
                 }
-            };
+                };
+            }
         }
 
         private static readonly HumanBodyBones[] LinkedBones = {
@@ -204,7 +208,6 @@ namespace BetterLocomotion
             }
             return HeadTransform;
         }
-
         private static HumanBodyBones FindAssignedBone(Transform trackerTransform) //Finds the nearest bone to the transform of a SteamVR tracker
         {
             var result = HumanBodyBones.LastBone;
@@ -222,7 +225,7 @@ namespace BetterLocomotion
         }
 
         private static bool _isInFbt, _isCalibrating;
-        private static int _checkStuffTimer;
+        private static int _checkStuffTimer, _CalibrationSavingSaverTimer;
         private static float _avatarScaledSpeed = 1;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
