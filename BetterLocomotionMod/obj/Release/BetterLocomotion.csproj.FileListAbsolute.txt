@@ -1,6 +1,0 @@
-C:\Users\mario\Documents\GitHub\BetterLocomotion\Output\BetterLocomotion.dll
-C:\Users\mario\Documents\GitHub\BetterLocomotion\BetterLocomotionMod\obj\Release\BetterLocomotion.AssemblyInfoInputs.cache
-C:\Users\mario\Documents\GitHub\BetterLocomotion\BetterLocomotionMod\obj\Release\BetterLocomotion.AssemblyInfo.cs
-C:\Users\mario\Documents\GitHub\BetterLocomotion\BetterLocomotionMod\obj\Release\BetterLocomotion.csproj.CoreCompileInputs.cache
-C:\Users\mario\Documents\GitHub\BetterLocomotion\BetterLocomotionMod\obj\Release\BetterLocomotion.dll
-C:\Users\mario\Documents\GitHub\BetterLocomotion\BetterLocomotionMod\obj\Release\BetterLocomotion.csproj.AssemblyReference.cache
