@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.5";
+        public const string Version = "1.1.6";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -79,7 +79,7 @@ namespace BetterLocomotion
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
             _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
-            _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)"); //name by Patchuuri
+            _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)");
             _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
             _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.1f, "Lolimotion: maximum height");
         }
@@ -109,7 +109,7 @@ namespace BetterLocomotion
                 Logger.Msg("XRDevice detected. Initializing...");
                 try
                 {
-                    foreach (var info in typeof(VRCMotionState).GetMethods().Where(method =>
+                    foreach (MethodInfo info in typeof(VRCMotionState).GetMethods().Where(method =>
                         method.Name.Contains("Method_Public_Void_Vector3_Single_") && !method.Name.Contains("PDM")))
                         _hInstance.Patch(info, new HarmonyMethod(typeof(Main).GetMethod(nameof(Prefix))));
                     Logger.Msg("Successfully loaded!");
@@ -129,9 +129,9 @@ namespace BetterLocomotion
         {
             var inputProcessor = VRCInputManager.field_Private_Static_Dictionary_2_InputMethod_VRCInputProcessor_0;
             if (!(inputProcessor?.Count > 0)) return null;
-            var lInput = inputProcessor[VRCInputManager.InputMethod.Vive];
+            VRCInputProcessor lInput = inputProcessor[VRCInputManager.InputMethod.Vive];
             if (lInput == null) return null;
-            var lViveInput = lInput.TryCast<VRCInputProcessorVive>();
+            VRCInputProcessorVive lViveInput = lInput.TryCast<VRCInputProcessorVive>();
 
             SteamVR_ControllerManager lResult = null;
             if (lViveInput != null) lResult = lViveInput.field_Private_SteamVR_ControllerManager_0;
@@ -140,38 +140,36 @@ namespace BetterLocomotion
 
         private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
         private static float GetAvatarScaledSpeed() {
-            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.7f);
-            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 3f);
+            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.75f);
+            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 4f);
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
         }
-        public override void OnLateUpdate()
+        public override void OnUpdate()
         {
             if (_isCalibrating)
-            {
                 _CalibrationSavingSaverTimer++;
-                getTrackerHip = GetTracker(HumanBodyBones.Hips);
-                getTrackerChest = GetTracker(HumanBodyBones.Chest);
-            }
         }
-        private static void VRCTrackingManager_StartCalibration() // Use head locomotion while calibrating.
+        private static void VRCTrackingManager_StartCalibration()
         {
             _CalibrationSavingSaverTimer = 0;
             _isCalibrating = true;
         }
-        private static void VRCTrackingManager_FinishCalibration() //Gets the trackers or bones and creates the offset GameObjects
+        private static void VRCTrackingManager_FinishCalibration() // Gets the trackers or bones and creates the offset GameObjects
         {
             _isInFbt = true;
             _isCalibrating = false;
             _avatarScaledSpeed = GetAvatarScaledSpeed();
 
-            _hipTransform = getTrackerHip ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
-            _chestTransform = getTrackerChest == null || getTrackerChest == _hipTransform
-                ? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest)
-                : getTrackerChest;
-
-            Quaternion rotation = Quaternion.FromToRotation(_headTransform.up, Vector3.up) * _headTransform.rotation;
-            if (_CalibrationSavingSaverTimer > 5 || _offsetHip == null)
+            if (_CalibrationSavingSaverTimer > 6 || _offsetHip == null) // 6 frames for saved calibration (IKTweaks' universal calibration for example)
             {
+                getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
+                getTrackerChest = GetTracker(HumanBodyBones.Chest);
+
+                _hipTransform = getTrackerHip ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
+                _chestTransform = getTrackerChest ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
+
+                Quaternion rotation = Quaternion.FromToRotation(_headTransform.up, Vector3.up) * _headTransform.rotation;
+
                 _offsetHip = new GameObject
                 {
                     transform =
@@ -198,7 +196,7 @@ namespace BetterLocomotion
             HumanBodyBones.Chest
         };
 
-        private static Transform GetTracker(HumanBodyBones bodyPart) //Gets the SteamVR tracker for a certain bone
+        private static Transform GetTracker(HumanBodyBones bodyPart) // Gets the SteamVR tracker for a certain bone
         {
             var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
             for (int i = 0; i < puckArray.Length - 2; i++)
@@ -206,17 +204,17 @@ namespace BetterLocomotion
                 if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
                     return puckArray[i + 2].transform;
             }
-            return HeadTransform;
+            return null;
         }
-        private static HumanBodyBones FindAssignedBone(Transform trackerTransform) //Finds the nearest bone to the transform of a SteamVR tracker
+        private static HumanBodyBones FindAssignedBone(Transform trackerTransform) // Finds the nearest bone to the transform of a SteamVR tracker
         {
-            var result = HumanBodyBones.LastBone;
-            var distance = float.MaxValue;
-            foreach (var bone in LinkedBones)
+            HumanBodyBones result = HumanBodyBones.LastBone;
+            float distance = float.MaxValue;
+            foreach (HumanBodyBones bone in LinkedBones)
             {
-                var lBoneTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(bone);
+                Transform lBoneTransform = GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(bone);
                 if (lBoneTransform == null) continue;
-                var lDistanceToPuck = Vector3.Distance(lBoneTransform.position, trackerTransform.position);
+                float lDistanceToPuck = Vector3.Distance(lBoneTransform.position, trackerTransform.position);
                 if (!(lDistanceToPuck < distance)) continue;
                 distance = lDistanceToPuck;
                 result = bone;
@@ -229,7 +227,7 @@ namespace BetterLocomotion
         private static float _avatarScaledSpeed = 1;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
-        private static Transform HeadTransform => //Gets the head transform
+        private static Transform HeadTransform => // Gets the head transform
             _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform.Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
         // Substitute the direction from the original method with our own
@@ -241,7 +239,7 @@ namespace BetterLocomotion
             if (rawVelo == Vector3.zero)
                 return Vector3.zero;
 
-            var @return = _locomotionMode.Value switch
+            Vector3 @return = _locomotionMode.Value switch
             {
                 Locomotion.Hip when _isInFbt && !_isCalibrating && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
                 Locomotion.Chest when _isInFbt && !_isCalibrating && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
