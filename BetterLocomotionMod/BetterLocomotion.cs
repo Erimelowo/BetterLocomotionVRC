@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.6";
+        public const string Version = "1.1.7";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -147,7 +147,11 @@ namespace BetterLocomotion
         public override void OnUpdate()
         {
             if (_isCalibrating)
+            {
+                getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
+                getTrackerChest = GetTracker(HumanBodyBones.Chest);
                 _CalibrationSavingSaverTimer++;
+            }
         }
         private static void VRCTrackingManager_StartCalibration()
         {
@@ -162,9 +166,6 @@ namespace BetterLocomotion
 
             if (_CalibrationSavingSaverTimer > 6 || _offsetHip == null) // 6 frames for saved calibration (IKTweaks' universal calibration for example)
             {
-                getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
-                getTrackerChest = GetTracker(HumanBodyBones.Chest);
-
                 _hipTransform = getTrackerHip ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Hips);
                 _chestTransform = getTrackerChest ?? GetLocalPlayer().field_Internal_Animator_0.GetBoneTransform(HumanBodyBones.Chest);
 
