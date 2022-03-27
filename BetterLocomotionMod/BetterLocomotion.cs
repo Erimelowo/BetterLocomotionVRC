@@ -29,7 +29,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.7";
+        public const string Version = "1.1.8";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -226,6 +226,7 @@ namespace BetterLocomotion
         private static bool _isInFbt, _isCalibrating;
         private static int _checkStuffTimer, _CalibrationSavingSaverTimer;
         private static float _avatarScaledSpeed = 1;
+        private static float inputX, inputY, runSpeed, strafeSpeed;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
         private static Transform HeadTransform => // Gets the head transform
@@ -237,9 +238,20 @@ namespace BetterLocomotion
         // Fixes the game's original direction to match the preferred one
         private static Vector3 CalculateDirection(Vector3 rawVelo)
         {
-            if (rawVelo == Vector3.zero)
-                return Vector3.zero;
+            if (rawVelo == Vector3.zero) return Vector3.zero;
 
+            inputX = Input.GetAxisRaw("Horizontal");
+            inputY = Input.GetAxisRaw("Vertical");
+
+            VRCPlayerApi PlayerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
+            strafeSpeed = PlayerApi.GetStrafeSpeed();
+            runSpeed = PlayerApi.GetRunSpeed();
+
+            if ((Mathf.Abs(rawVelo.x) / strafeSpeed + Mathf.Abs(rawVelo.z) / runSpeed) > 0.4 && (inputX + inputY == 0))
+            {
+                if (_lolimotion.Value) return rawVelo * _avatarScaledSpeed;
+                else return rawVelo;
+            }
             Vector3 @return = _locomotionMode.Value switch
             {
                 Locomotion.Hip when _isInFbt && !_isCalibrating && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
@@ -278,9 +290,8 @@ namespace BetterLocomotion
             return (float)((Math.Sqrt((1 - d * d) * (x * x + y * y) + 2 * d * d * x * y) - d * (x + y)) / ((1 - d) * Math.Sqrt(x * x + y * y)));
         }
 
-        private static Vector3 CalculateLocomotion(Transform trackerTransform) //Thanks AxisAngle for the code!
+        private static Vector3 CalculateLocomotion(Transform trackerTransform) // Thanks AxisAngle for the code!
         {
-            float inputX = Input.GetAxisRaw("Horizontal"), inputY = Input.GetAxisRaw("Vertical");
             float inputMag = Mathf.Sqrt(inputX * inputX + inputY * inputY);
 
             // Early escape to avoid division by 0
@@ -301,10 +312,6 @@ namespace BetterLocomotion
             else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
             else speedMod = 1.0f;
             if (_lolimotion.Value) speedMod *= _avatarScaledSpeed;
-
-            VRCPlayerApi PlayerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
-            float strafeSpeed = PlayerApi.GetStrafeSpeed();
-            float runSpeed = PlayerApi.GetRunSpeed();
 
             float ovalWidth = inputMod * speedMod * strafeSpeed;
             float ovalHeight = inputMod * speedMod * runSpeed;
