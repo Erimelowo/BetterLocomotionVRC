@@ -9,7 +9,7 @@ using MelonLoader;
  * Code by SDraw
  */
 
-namespace BetterLocomotion
+namespace BetterLocomotionDE
 {
     internal static class MethodsResolver
     {

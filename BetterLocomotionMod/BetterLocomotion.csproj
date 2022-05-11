@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<TargetFramework>net472</TargetFramework>
 		<VrcReferences>true</VrcReferences>
@@ -7,4 +7,8 @@
 		<AssemblyVersion>1.0.0.0</AssemblyVersion>
 		<Version>1.0.0</Version>
 	</PropertyGroup>
+	<ItemGroup>
+		<None Remove="deca_sdk.dll" />
+		<EmbeddedResource Include="deca_sdk.dll" />
+	</ItemGroup>
 </Project>
