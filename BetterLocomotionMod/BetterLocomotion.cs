@@ -103,7 +103,7 @@ namespace BetterLocomotion
 
         private static void InitializeSettings()
         {
-            MelonPreferences.CreateCategory("BetterLocomotionDE", "BetterLocomotion Deca Edition");
+            MelonPreferences.CreateCategory("BetterLocomotion", "BetterLocomotion");
 
             _locomotionMode = MelonPreferences.CreateEntry("BetterLocomotion", "LocomotionMode", Locomotion.Head, "Locomotion mode");
             _joystickThreshold = MelonPreferences.CreateEntry("BetterLocomotion", "JoystickThreshold", 0f, "Joystick threshold (0-1)");
