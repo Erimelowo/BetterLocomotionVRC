@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Collections;
 using System.IO;
-using BetterLocomotionDE;
 using HarmonyLib;
 using UnityEngine;
 using UnityEngine.XR;
@@ -41,16 +40,20 @@ namespace BetterLocomotion
 
     public class Main : MelonMod
     {
-        private enum Locomotion { Head,Deca, Hip, Chest }
+        private enum Locomotion { Head, Deca, Hip, Chest }
         internal static MelonLogger.Instance Logger;
         private static HarmonyLib.Harmony _hInstance;
-
         private static DecaMoveBehaviour deca;
+
         // Wait for Ui Init so XRDevice.isPresent is defined
         public override void OnApplicationStart()
         {
             Logger = LoggerInstance;
             _hInstance = HarmonyInstance;
+            deca = new DecaMoveBehaviour
+            {
+                Logger = Logger
+            };
 
             WaitForUiInit();
             InitializeSettings();
@@ -70,7 +73,7 @@ namespace BetterLocomotion
             if (MethodsResolver.IKTweaks_ApplyStoredCalibration != null)
                 HarmonyInstance.Patch(MethodsResolver.IKTweaks_ApplyStoredCalibration, null,
                     new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_FinishCalibration)));
-            
+
             var dllName = "deca_sdk.dll";
 
             try
@@ -85,7 +88,7 @@ namespace BetterLocomotion
                 MelonLogger.Warning("Failed to write native dll; will attempt loading it anyway. This is normal if you're running multiple instances of VRChat");
                 MelonDebug.Msg(ex.ToString());
             }
-            
+
             Logger.Msg("Successfully loaded!");
         }
 
@@ -111,9 +114,6 @@ namespace BetterLocomotion
             _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
             _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.1f, "Lolimotion: maximum height");
             _decaButton = MelonPreferences.CreateEntry("BetterLocomotion", "DecaButton", false, "Show deca menu buttons");
-            deca = new DecaMoveBehaviour();
-            deca.Logger = Logger;
-            //if(decaButton!=null) decaButton.SetVisible(_decaButton.Value);
         }
 
         public static void DecaCalibrate()
@@ -155,7 +155,7 @@ namespace BetterLocomotion
                     foreach (MethodInfo info in typeof(VRCMotionState).GetMethods().Where(method =>
                         method.Name.Contains("Method_Public_Void_Vector3_Single_") && !method.Name.Contains("PDM")))
                         _hInstance.Patch(info, new HarmonyMethod(typeof(Main).GetMethod(nameof(Prefix))));
-                    
+
                     Logger.Msg("Successfully loaded!");
                 }
                 catch (Exception e)
@@ -183,7 +183,8 @@ namespace BetterLocomotion
         }
 
         private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
-        private static float GetAvatarScaledSpeed() {
+        private static float GetAvatarScaledSpeed()
+        {
             float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.75f);
             float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 4f);
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
@@ -201,27 +202,11 @@ namespace BetterLocomotion
             {
                 deca.Update();
             }
-            //Logger.Msg($"[Deca] R{deca.OutTransform.rotation.ToString()} S{deca.state.ToString()}");
         }
-
 
         public override void OnPreferencesSaved()
         {
             if (decaButton != null) decaButton.SetVisible(_decaButton.Value);
-        }
-
-        private static int _decaLastBattery;
-
-        public static void DecaButtonText()
-        {
-            return;
-            int batt = (int) deca.battery;
-            if (deca != null && _decaLastBattery != batt)
-            {
-                string battMsg = deca.battery >= 0 ? $"\n🔋:{deca.battery}%" : "";
-                if (decaButton != null) decaButton.Text = $"Calibrate Deca{battMsg}";
-                _decaLastBattery = batt;
-            }
         }
 
         private static void VRCTrackingManager_StartCalibration()
@@ -323,21 +308,23 @@ namespace BetterLocomotion
                 if (_lolimotion.Value) return rawVelo * _avatarScaledSpeed;
                 else return rawVelo;
             }
+
             deca.HeadTransform = HeadTransform;
+
             Vector3 @return = _locomotionMode.Value switch
             {
                 Locomotion.Hip when _isInFbt && !_isCalibrating && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
                 Locomotion.Chest when _isInFbt && !_isCalibrating && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
-                Locomotion.Deca when deca!=null && (deca.state==Move.State.Streaming)  => CalculateLocomotion(deca.OutTransform),
+                Locomotion.Deca when deca != null && (deca.state == Move.State.Streaming) => CalculateLocomotion(deca.OutTransform),
                 _ => CalculateLocomotion(HeadTransform),
             };
 
             _checkStuffTimer++;
-            if (_checkStuffTimer <= 100) return @return;
+            if (_checkStuffTimer <= 50) return @return; // doing this is ~60 times less heavy on performance than calling CheckIfInFbt() and GetAvatarScaledSpeed().
+
             _checkStuffTimer = 0;
             _isInFbt = CheckIfInFbt();
             _avatarScaledSpeed = GetAvatarScaledSpeed();
-            //Logger.Msg($"[V3debug] {@return.ToString()} Deca{deca!=null && deca.state==Move.State.Streaming} State{deca.state.ToString()}");
             return @return;
         }
 
