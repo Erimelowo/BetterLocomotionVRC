@@ -258,8 +258,13 @@ namespace BetterLocomotion
             var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
             for (int i = 0; i < puckArray.Length - 2; i++)
             {
-                if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
+                if(puckArray[i + 2].transform != null)
+                {
+                                    if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
+                {
                     return puckArray[i + 2].transform;
+                }
+                }
             }
             return null;
         }

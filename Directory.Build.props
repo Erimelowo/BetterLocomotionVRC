@@ -103,5 +103,9 @@
 			<HintPath>$(MelonManaged)\VRC.UI.Elements.dll</HintPath>
 			<Private>False</Private>
 		</Reference>
+		<Reference Include="0harmony">
+			<HintPath>$(MelonManaged)\..\0Harmony.dll</HintPath>
+			<Private>False</Private>
+		</Reference>
 	</ItemGroup>
 </Project>
