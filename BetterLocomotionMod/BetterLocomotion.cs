@@ -260,10 +260,10 @@ namespace BetterLocomotion
             {
                 if(puckArray[i + 2].transform != null)
                 {
-                                    if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
-                {
-                    return puckArray[i + 2].transform;
-                }
+                    if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
+                    {
+                        return puckArray[i + 2].transform;
+                    }
                 }
             }
             return null;
