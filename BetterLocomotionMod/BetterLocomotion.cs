@@ -33,7 +33,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.1.8";
+        public const string Version = "1.2.0";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
@@ -113,7 +113,7 @@ namespace BetterLocomotion
             _lolimotion = MelonPreferences.CreateEntry("BetterLocomotion", "Lolimotion", false, "Lolimotion (scale speed to height)");
             _lolimotionMinimum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMinimum", 0.5f, "Lolimotion: minimum height");
             _lolimotionMaximum = MelonPreferences.CreateEntry("BetterLocomotion", "LolimotionMaximum", 1.1f, "Lolimotion: maximum height");
-            _decaButton = MelonPreferences.CreateEntry("BetterLocomotion", "DecaButton", false, "Show deca menu buttons");
+            _decaButton = MelonPreferences.CreateEntry("BetterLocomotion", "DecaButton", false, "Show deca QM button");
         }
 
         public static void DecaCalibrate()
