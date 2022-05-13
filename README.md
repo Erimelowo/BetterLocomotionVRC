@@ -9,7 +9,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - **Lolimotion**: option to slow down your movement speed according to the height of your avatar.
 - Compatible with [IKTweaks](https://github.com/knah/VRCMods#iktweaks) and IK 2.0.
 - Hip and chest locomotion works in 4-point tracking, 6-point tracking or more.
-- Improve Decamove support. On top of moving towards your hip, you will also go faster towards your hip instead of your head when using decamove. (Thanks [ballfn](https://github.com/ballfn))
+- Improve Decamove support. On top of moving towards your hip, you will also go faster towards your hip instead of your head when using decamove. (Thanks [ballfun](https://github.com/ballfn))
 
 ## Settings descriptions
 - **Locomotion mode**: which reference should be used for locomotion (head, hip or chest)
@@ -29,7 +29,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - [AxisAngle](https://twitter.com/DonaldFReynolds) (for the logic with angles/movement)
 - SDraw's [Calibration Lines Visualizer](https://github.com/SDraw/ml_mods) mod (code to find SteamVR trackers)
 - Patchuuri for naming Lolimotion :3
-- [ballfn](https://github.com/ballfn) for improved Decamove support.
+- [ballfun](https://github.com/ballfn) for improved Decamove support.
 
 ## Installation
 **Before installing: Modding is against VRChat's ToS. Be careful while using this as it modifies player movement! We are not responsible for any punishments.**  
