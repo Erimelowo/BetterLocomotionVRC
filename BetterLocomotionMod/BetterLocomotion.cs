@@ -40,7 +40,7 @@ namespace BetterLocomotion
 
     public class Main : MelonMod
     {
-        private enum Locomotion { Head, Deca, Hip, Chest }
+        private enum Locomotion { Head, Hip, Chest, Deca }
         internal static MelonLogger.Instance Logger;
         private static HarmonyLib.Harmony _hInstance;
         private static DecaMoveBehaviour deca;
