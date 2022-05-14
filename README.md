@@ -12,7 +12,7 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 - Improve Decamove support. On top of moving towards your hip, you will also go faster towards your hip instead of your head when using decamove. (Thanks [ballfun](https://github.com/ballfn))
 
 ## Settings descriptions
-- **Locomotion mode**: which reference should be used for locomotion (head, hip or chest)
+- **Locomotion mode**: which reference should be used for locomotion (head, hip, chest or decamove)
 - **Joystick threshold (0-1)**: prevents you from moving if your joystick's inclination is below that threshold. 0 being no threshold and 1 requiring you to tilt your joystick all the way to move.
 - **Lolimotion (scale speed to height)**: toggles Lolimotion. Lolimotion is able to slow you down according to the height of your avatar.
 - **Lolimotion: minimum height**: value at which Lolimotion will stop slowing down your avatar. Default: 0.5
