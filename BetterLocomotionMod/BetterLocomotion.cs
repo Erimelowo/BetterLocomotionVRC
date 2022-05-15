@@ -184,7 +184,7 @@ namespace BetterLocomotion
                 _CalibrationSavingSaverTimer++;
             }
 
-            if (_xrPresent&&_locomotionMode.Value == Locomotion.Deca&&deca!=null)
+            if (_xrPresent && _locomotionMode.Value == Locomotion.Deca && deca != null)
             {
                 deca.Update();
             }
@@ -223,14 +223,10 @@ namespace BetterLocomotion
                     Logger.Msg("Deca Created"); 
                 }
                 if (decaButton != null) decaButton.SetVisible(_decaButton.Value);
-            }else
+            }
+            else
             {
                 if (decaButton != null) decaButton.SetVisible(false);
-                /*if (deca != null)
-                {
-                    deca.OnDestroy();
-                    deca = null;
-                }*/
             }
         }
 
@@ -339,13 +335,13 @@ namespace BetterLocomotion
                 else return rawVelo;
             }
 
-            if(_locomotionMode.Value == Locomotion.Deca&&deca != null) deca.HeadTransform = HeadTransform;
+            if(_locomotionMode.Value == Locomotion.Deca && deca != null) deca.HeadTransform = HeadTransform;
 
             Vector3 @return = _locomotionMode.Value switch
             {
                 Locomotion.Hip when _isInFbt && !_isCalibrating && _hipTransform != null => CalculateLocomotion(_offsetHip.transform),
                 Locomotion.Chest when _isInFbt && !_isCalibrating && _chestTransform != null => CalculateLocomotion(_offsetChest.transform),
-                Locomotion.Deca when deca != null && (deca.state == Move.State.Streaming) &&deca.OutObject => CalculateLocomotion(deca.OutTransform),
+                Locomotion.Deca when deca != null && (deca.state == Move.State.Streaming) && deca.OutObject => CalculateLocomotion(deca.OutTransform),
                 _ => CalculateLocomotion(HeadTransform),
             };
 
