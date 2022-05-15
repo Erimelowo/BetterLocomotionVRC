@@ -11,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using UnityEngine;
-using UnityEngine.Events;
 using DecaSDK.Unity;
 using Il2CppSystem.Reflection;
 using Object = UnityEngine.Object;
@@ -27,10 +26,10 @@ namespace DecaSDK
         //public Transform head;
         //public Vector3 positionOutput;
         //public Quaternion rotationOutput;
-        public Transform OutTransform => outObject.transform;
-        private GameObject outObject;
+        public Transform OutTransform => OutObject.transform;
+        public GameObject OutObject;
         public Transform HeadTransform;
-        private bool Started;
+        private bool _started;
         public bool updatePositon;
         //[Tooltip("This option makes it so that the DecaMove only rotates around the y axis, often this is more usefull")]
         public bool onlyRotateY = true;
@@ -38,7 +37,7 @@ namespace DecaSDK
         private Vector3 _position;
         
         public MelonLogger.Instance Logger;
-        public static Transform CameraTransform;
+        public Transform CameraTransform;
         // This is the raw, uncalibrated rotation of the move
         public Quaternion rotation => _rotation;
         private Quaternion _rotation;
@@ -97,6 +96,7 @@ namespace DecaSDK
                     // Debug messages get logged here.
                     if (logLevel == Move.LogLevel.Critical || logLevel == Move.LogLevel.Err)
                     {
+                        LogError("DecaLog: \"" + msg + "\" logLevel: " + logLevel);
                         
                     }
                     else
@@ -137,7 +137,8 @@ namespace DecaSDK
 
                 _decaMove = SharedMove.Instance;
                 _decaMove.Value.AddCallbacks(OnFeedback, OnBatteryUpdate, OnOrientationUpdate, OnPositionUpdate, OnStateUpdate, OnImuCalibrationRequest, OnLogMessage);
-                Started = true;
+                _started = true;
+                Log("SDK loaded");
             }
             catch (Exception e)
             {
@@ -153,33 +154,31 @@ namespace DecaSDK
             var transform = camera.GetIl2CppType().GetFields(BindingFlags.Public | BindingFlags.Instance)
                 .Where(f => f.FieldType == Il2CppType.Of<Transform>()).ToArray()[0];
             CameraTransform = transform.GetValue(camera).Cast<Transform>();
-            outObject = new GameObject();
+            OutObject = new GameObject();
             
             
-            outObject.transform.parent = CameraTransform;
+            OutObject.transform.parent = CameraTransform;
             
             Log("OutObject was created");
             return true;
         }
 
-        private bool hasInintCalibrate = false;
+        private bool _hasInitCalibrate = false;
         public void Update()
         {
-            
-
-            if(!Started) Start();
+            if(!_started) Start();
             if (!HeadTransform)
             {
                 return;
             }
-            if (!outObject)
+            if (!OutObject)
             {
                 if(!SetupOutObject())return;
             }
 
-            if (!hasInintCalibrate)
+            if (!_hasInitCalibrate)
             {
-                hasInintCalibrate = true;
+                _hasInitCalibrate = true;
                 Calibrate();
             }
             
@@ -228,12 +227,14 @@ namespace DecaSDK
         {
             try
             {
-                if(outObject) Object.Destroy(outObject);
+                if(OutObject) Object.Destroy(OutObject);
                 if(_decaMove != null)
                 {
                     _decaMove.Dispose();
                     _decaMove = null;
                 }
+                
+                Log("SDK unloaded");
             }
             catch (Exception e)
             {
@@ -259,13 +260,13 @@ namespace DecaSDK
         {
             if (!HeadTransform)
             {
-                LogError($"Calibrate Failed, no head");
+                LogWarning($"Calibrate Failed, no head");
                 return;
             }
             try
             {
                 Quaternion parentRotationOffset = Quaternion.identity;
-                    if(outObject.transform.parent) parentRotationOffset = Quaternion.Inverse(outObject.transform.parent.rotation);
+                    if(OutObject.transform.parent) parentRotationOffset = Quaternion.Inverse(OutObject.transform.parent.rotation);
                     //Vector3 headForward = HeadTransform.rotation.eulerAngles; 
                     Vector3 headForward = parentRotationOffset * HeadTransform.forward;
                     
@@ -287,11 +288,9 @@ namespace DecaSDK
             if(Logger!=null) Logger.Msg($"[DecaSDK] {message}");
         }void LogWarning(String message)
         {
-            //Debug.LogError($"[DecaSDK] {message}");
             if(Logger!=null) Logger.Warning($"[DecaSDK] {message}");
         }void LogError(String message)
         {
-            //Debug.LogError($"[DecaSDK] {message}");
             if(Logger!=null) Logger.Error($"[DecaSDK] {message}");
         }
         const float Rad2Deg = 57.29578f;
