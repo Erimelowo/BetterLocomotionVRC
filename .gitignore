@@ -1,3 +1,5 @@
 BetterLocomotionMod/obj/*
 BetterLocomotionMod/.vs/*
 .vs/*
+.idea/*
+Output/
