@@ -347,7 +347,7 @@ namespace BetterLocomotion
             if (inputMag == 0.0f) return Vector3.zero;
 
             // Now we modulate the input magnitude to observe a deadzone
-            float in0 = Mathf.Clamp(_joystickThreshold.Value, 0, 0.98f), in1 = 1.0f;
+            float in0 = Mathf.Clamp(_joystickThreshold.Value, 0, 0.96f), in1 = 1.0f;
             float out0 = 0.0f, out1 = 1.0f;
             float inputMod = Mathf.Clamp(LinearMap(in0, in1, out0, out1, inputMag), out0, out1);
 
