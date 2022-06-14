@@ -9,6 +9,6 @@
 	</PropertyGroup>
 	<ItemGroup>
 		<None Remove="deca_sdk.dll" />
-		<EmbeddedResource Include="deca_sdk.dll" />
+		<EmbeddedResource Include="DecaSDK\deca_sdk.dll" />
 	</ItemGroup>
 </Project>

@@ -1,7 +1,5 @@
-using System;
 using System.Reflection;
 using System.Linq;
-using HarmonyLib;
 using UnhollowerRuntimeLib.XrefScans;
 using MelonLoader;
 
@@ -17,8 +15,6 @@ namespace BetterLocomotion
 
         private static MethodInfo ms_prepareForCalibration;
         private static MethodInfo ms_restoreTrackingAfterCalibration;
-        private static MethodInfo ms_calibrate; // IKTweaks
-        private static MethodInfo ms_applyStoredCalibration; // IKTweaks
 
         public static void ResolveMethods(MelonLogger.Instance loggerInstance)
         {
@@ -57,44 +53,6 @@ namespace BetterLocomotion
                 else
                     Logger.Warning("Can't resolve VRCTrackingManager.RestoreTrackingAfterCalibration");
             }
-
-            // void IKTweaks.CalibrationManager.Calibrate(GameObject avatarRoot)
-            if (ms_calibrate == null)
-            {
-                foreach (MelonMod l_mod in MelonHandler.Mods)
-                {
-                    if (l_mod.Info.Name == "IKTweaks")
-                    {
-                        Type l_cbType = null;
-                        l_mod.Assembly.GetTypes().DoIf(t => t.Name == "CalibrationManager", t => l_cbType = t);
-                        if (l_cbType != null)
-                        {
-                            ms_calibrate = l_cbType.GetMethod("Calibrate");
-                            Logger.Msg("IKTweaks.CalibrationManager.Calibrate " + ((ms_calibrate != null) ? "found" : "not found"));
-                        }
-                        break;
-                    }
-                }
-            }
-
-            // Task IKTweaks.CalibrationManager.ApplyStoredCalibration(GameObject avatarRoot, string avatarId)
-            if (ms_applyStoredCalibration == null)
-            {
-                foreach (MelonMod l_mod in MelonHandler.Mods)
-                {
-                    if (l_mod.Info.Name == "IKTweaks")
-                    {
-                        Type l_cbType = null;
-                        l_mod.Assembly.GetTypes().DoIf(t => t.Name == "CalibrationManager", t => l_cbType = t);
-                        if (l_cbType != null)
-                        {
-                            ms_applyStoredCalibration = l_cbType.GetMethod("ApplyStoredCalibration", BindingFlags.NonPublic | BindingFlags.Static);
-                            Logger.Msg("IKTweaks.CalibrationManager.ApplyStoredCalibration " + ((ms_applyStoredCalibration != null) ? "found" : "not found"));
-                        }
-                        break;
-                    }
-                }
-            }
         }
 
         public static MethodInfo PrepareForCalibration
@@ -104,14 +62,6 @@ namespace BetterLocomotion
         public static MethodInfo RestoreTrackingAfterCalibration
         {
             get => ms_restoreTrackingAfterCalibration;
-        }
-        public static MethodInfo IKTweaks_Calibrate
-        {
-            get => ms_calibrate;
-        }
-        public static MethodInfo IKTweaks_ApplyStoredCalibration
-        {
-            get => ms_applyStoredCalibration;
         }
     }
 }

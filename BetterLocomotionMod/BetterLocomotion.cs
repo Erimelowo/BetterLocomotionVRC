@@ -8,9 +8,9 @@ using UnityEngine;
 using UnityEngine.XR;
 using MelonLoader;
 using VRC.Animation;
+using VRC.SDKBase;
 using BuildInfo = BetterLocomotion.BuildInfo;
 using Main = BetterLocomotion.Main;
-using VRC.SDKBase;
 using DecaSDK;
 using UIExpansionKit.API;
 using UIExpansionKit.API.Controls;
@@ -32,11 +32,11 @@ namespace BetterLocomotion
     public static class BuildInfo
     {
         public const string Name = "BetterLocomotion";
-        public const string Author = "Erimel, Davi & AxisAngle";
-        public const string Version = "1.2.0";
+        public const string Author = "Gay fox boy, Davi & AxisAngle";
+        public const string Version = "1.3.0";
     }
 
-    internal static class UIXManager { public static void OnApplicationStart() => UIExpansionKit.API.ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
+    internal static class UIXManager { public static void OnApplicationStart() => ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
 
     public class Main : MelonMod
     {
@@ -50,7 +50,6 @@ namespace BetterLocomotion
         {
             Logger = LoggerInstance;
             _hInstance = HarmonyInstance;
-            
 
             WaitForUiInit();
             InitializeSettings();
@@ -61,16 +60,9 @@ namespace BetterLocomotion
             if (MethodsResolver.PrepareForCalibration != null)
                 HarmonyInstance.Patch(MethodsResolver.PrepareForCalibration, null,
                     new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_StartCalibration)));
-            if (MethodsResolver.IKTweaks_Calibrate != null)
-                HarmonyInstance.Patch(MethodsResolver.IKTweaks_Calibrate, null,
-                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_StartCalibration)));
             if (MethodsResolver.RestoreTrackingAfterCalibration != null)
                 HarmonyInstance.Patch(MethodsResolver.RestoreTrackingAfterCalibration, null,
                     new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_FinishCalibration)));
-            if (MethodsResolver.IKTweaks_ApplyStoredCalibration != null)
-                HarmonyInstance.Patch(MethodsResolver.IKTweaks_ApplyStoredCalibration, null,
-                    new HarmonyMethod(typeof(Main), nameof(VRCTrackingManager_FinishCalibration)));
-
 
             Logger.Msg("Successfully loaded!");
         }
@@ -110,8 +102,7 @@ namespace BetterLocomotion
         {
             if (MelonHandler.Mods.Any(x => x.Info.Name.Equals("UI Expansion Kit")))
             {
-                decaButton = ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu)
-                    .AddSimpleButton("Calibrate Deca", DecaCalibrate);
+                decaButton = ExpansionKitApi.GetExpandedMenu(ExpandedMenu.QuickMenu).AddSimpleButton("Calibrate Deca", DecaCalibrate);
                 decaButton.SetVisible(false);
                 typeof(UIXManager).GetMethod("OnApplicationStart")!.Invoke(null, null);
             }
@@ -171,22 +162,25 @@ namespace BetterLocomotion
         private static bool CheckIfInFbt() => GetLocalPlayer().field_Private_VRC_AnimationController_0.field_Private_IkController_0.field_Private_IkType_0 is IkController.IkType.SixPoint or IkController.IkType.FourPoint;
         private static float GetAvatarScaledSpeed()
         {
-            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.1f, 1.75f);
-            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 4f);
+            float minimum = Mathf.Clamp(_lolimotionMinimum.Value, 0.05f, 2f);
+            float maximum = Mathf.Clamp(_lolimotionMaximum.Value, minimum, 5f);
             return Mathf.Clamp(VRCTrackingManager.field_Private_Static_Vector3_0.y, minimum, maximum) / maximum;
         }
         public override void OnUpdate()
         {
-            if (_isCalibrating)
+            if (_xrPresent)
             {
-                getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
-                getTrackerChest = GetTracker(HumanBodyBones.Chest);
-                _CalibrationSavingSaverTimer++;
-            }
+                if (_isCalibrating)
+                {
+                    getTrackerHip = GetTracker(HumanBodyBones.Hips) ?? GetTracker(HumanBodyBones.Chest);
+                    getTrackerChest = GetTracker(HumanBodyBones.Chest);
+                    _CalibrationSavingSaverTimer++;
+                }
 
-            if (_xrPresent && _locomotionMode.Value == Locomotion.Deca && deca != null)
-            {
-                deca.Update();
+                if (_locomotionMode.Value == Locomotion.Deca && deca != null)
+                {
+                    deca.Update();
+                }
             }
         }
 
@@ -197,12 +191,11 @@ namespace BetterLocomotion
             {
                 if (!_decaDllLoaded)
                 {
-                    var dllName = "deca_sdk.dll";
+                    string dllName = "deca_sdk.dll";
 
                     try
                     {
-                        using var resourceStream = Assembly.GetExecutingAssembly()
-                            .GetManifestResourceStream(typeof(Main), dllName);
+                        using var resourceStream = Assembly.GetExecutingAssembly().GetManifestResourceStream(typeof(Main), dllName);
                         using var fileStream = File.Open("VRChat_Data/Plugins/" + dllName, FileMode.Create, FileAccess.Write);
                         resourceStream.CopyTo(fileStream);
                     }
@@ -218,9 +211,9 @@ namespace BetterLocomotion
                     deca = new DecaMoveBehaviour
                     {
                         Logger = Logger
-                        
-                    };  
-                    Logger.Msg("Deca Created"); 
+
+                    };
+                    Logger.Msg("Deca Created");
                 }
                 if (decaButton != null) decaButton.SetVisible(_decaButton.Value);
             }
@@ -235,7 +228,9 @@ namespace BetterLocomotion
             _CalibrationSavingSaverTimer = 0;
             _isCalibrating = true;
         }
-        private static void VRCTrackingManager_FinishCalibration() // Gets the trackers or bones and creates the offset GameObjects
+
+        // Gets the trackers or bones and creates the offset GameObjects
+        private static void VRCTrackingManager_FinishCalibration()
         {
             _isInFbt = true;
             _isCalibrating = false;
@@ -274,12 +269,13 @@ namespace BetterLocomotion
             HumanBodyBones.Chest
         };
 
-        private static Transform GetTracker(HumanBodyBones bodyPart) // Gets the SteamVR tracker for a certain bone
+        // Gets the SteamVR tracker for a certain bone
+        private static Transform GetTracker(HumanBodyBones bodyPart)
         {
             var puckArray = GetSteamVRControllerManager().field_Public_ArrayOf_GameObject_0;
             for (int i = 0; i < puckArray.Length - 2; i++)
             {
-                if(puckArray[i + 2].transform != null)
+                if (puckArray[i + 2].transform != null)
                 {
                     if (FindAssignedBone(puckArray[i + 2].transform) == bodyPart)
                     {
@@ -308,34 +304,19 @@ namespace BetterLocomotion
         private static bool _isInFbt, _isCalibrating;
         private static int _checkStuffTimer, _CalibrationSavingSaverTimer;
         private static float _avatarScaledSpeed = 1;
-        private static float inputX, inputY, runSpeed, strafeSpeed;
         private static GameObject _offsetHip, _offsetChest;
         private static Transform _headTransform, _hipTransform, _chestTransform, getTrackerHip, getTrackerChest;
+        private static GamelikeInputController inputController = null;
         private static Transform HeadTransform => // Gets the head transform
             _headTransform ??= Resources.FindObjectsOfTypeAll<NeckMouseRotator>()[0].transform.Find(Environment.CurrentDirectory.Contains("vrchat-vrchat") ? "CenterEyeAnchor" : "Camera (eye)");
 
         // Substitute the direction from the original method with our own
-        public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(__0); }
+        public static void Prefix(ref Vector3 __0) { __0 = CalculateDirection(); }
 
         // Fixes the game's original direction to match the preferred one
-        private static Vector3 CalculateDirection(Vector3 rawVelo)
+        private static Vector3 CalculateDirection()
         {
-            if (rawVelo == Vector3.zero) return Vector3.zero;
-
-            inputX = Input.GetAxisRaw("Horizontal");
-            inputY = Input.GetAxisRaw("Vertical");
-
-            VRCPlayerApi PlayerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
-            strafeSpeed = PlayerApi.GetStrafeSpeed();
-            runSpeed = PlayerApi.GetRunSpeed();
-
-            if ((Mathf.Abs(rawVelo.x) / strafeSpeed + Mathf.Abs(rawVelo.z) / runSpeed) > 0.4 && (inputX + inputY == 0))
-            {
-                if (_lolimotion.Value) return rawVelo * _avatarScaledSpeed;
-                else return rawVelo;
-            }
-
-            if(_locomotionMode.Value == Locomotion.Deca && deca != null) deca.HeadTransform = HeadTransform;
+            if (_locomotionMode.Value == Locomotion.Deca && deca != null) deca.HeadTransform = HeadTransform;
 
             Vector3 @return = _locomotionMode.Value switch
             {
@@ -354,60 +335,56 @@ namespace BetterLocomotion
             return @return;
         }
 
-        // We write a support function to do linear mappings
+        private static Vector3 CalculateLocomotion(Transform trackerTransform) // Thanks AxisAngle for the code!
+        {
+            // Get joystick inputs
+            if (inputController == null) inputController = GetLocalPlayer().GetComponent<GamelikeInputController>();
+            float inputX = inputController.field_Protected_VRCInput_0.field_Public_Single_0;
+            float inputY = inputController.field_Protected_VRCInput_1.field_Public_Single_0;
+            float inputMag = Mathf.Sqrt(inputX * inputX + inputY * inputY);
+
+            // Early escape to avoid division by 0
+            if (inputMag == 0.0f) return Vector3.zero;
+
+            // Now we modulate the input magnitude to observe a deadzone
+            float in0 = Mathf.Clamp(_joystickThreshold.Value, 0, 0.98f), in1 = 1.0f;
+            float out0 = 0.0f, out1 = 1.0f;
+            float inputMod = Mathf.Clamp(LinearMap(in0, in1, out0, out1, inputMag), out0, out1);
+
+            // Check if inputMod is 0 to avoid weird bugs...
+            if (inputMod == 0) return Vector3.zero;
+
+            // Get player speeds
+            float speedMod;
+            VRCMotionState playerMotionState = GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
+            if (playerMotionState.field_Private_Single_0 < 0.4f) speedMod = 0.1f;
+            else if (playerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
+            else speedMod = 1.0f;
+            if (_lolimotion.Value == true) speedMod *= _avatarScaledSpeed;
+
+            VRCPlayerApi playerApi = GetLocalPlayer().field_Private_VRCPlayerApi_0;
+            float ovalWidth = inputMod * speedMod * playerApi.GetStrafeSpeed();
+            float ovalHeight = inputMod * speedMod * playerApi.GetRunSpeed();
+
+            // Compute the multiplier which moves the input onto the oval
+            float t = TimeToOval(ovalWidth, ovalHeight, inputX, inputY);
+
+            // Apply t to get a point on the oval and compute input direction with given inputs
+            Vector3 inputDirection = t * (inputX * Vector3.right + inputY * Vector3.forward);
+            return Quaternion.FromToRotation(trackerTransform.transform.up, Vector3.up) * trackerTransform.transform.rotation * inputDirection;
+        }
+
+        // Linear mapping
         private static float LinearMap(float x0, float x1, float y0, float y1, float x)
         {
             return ((x1 - x) * y0 + (x - x0) * y1) / (x1 - x0);
         }
 
-        // We write a support function to raycast from the center against an oval
+        // Raycast from the center against an oval
         private static float TimeToOval(float w, float h, float dx, float dy)
         {
             // compute time of intersection time between ray d and the oval
             return 1.0f / Mathf.Sqrt(dx * dx / (w * w) + dy * dy / (h * h));
-        }
-
-        // d is the hardware per-axis deadzone. VRChat sets it to 0.19
-        private static float MaxInputMagnitude(float x, float y)
-        {
-            x = Math.Abs(x);
-            y = Math.Abs(y);
-            float d = 0.19f;
-            return (float)((Math.Sqrt((1 - d * d) * (x * x + y * y) + 2 * d * d * x * y) - d * (x + y)) / ((1 - d) * Math.Sqrt(x * x + y * y)));
-        }
-
-        private static Vector3 CalculateLocomotion(Transform trackerTransform) // Thanks AxisAngle for the code!
-        {
-            float inputMag = Mathf.Sqrt(inputX * inputX + inputY * inputY);
-
-            // Early escape to avoid division by 0
-            if (inputMag == 0) return Vector3.zero;
-
-            // Now we modulate the input magnitude to observe a deadzone. in0 and out0 are the minimum input and minimum output.
-            float in0 = Mathf.Clamp(_joystickThreshold.Value, 0, 0.96f), in1 = MaxInputMagnitude(inputX, inputY);
-            float out0 = 0, out1 = 1.0f;
-
-            float inputMod = Mathf.Clamp(LinearMap(in0, in1, out0, out1, inputMag), out0, out1);
-
-            if (inputMod == 0) return Vector3.zero;
-
-            // Now we must compute the size of the speed boundary oval
-            float speedMod;
-            VRCMotionState PlayerMotionState = GetLocalPlayer().gameObject.GetComponent<VRCMotionState>();
-            if (PlayerMotionState.field_Private_Single_0 < 0.4f) speedMod = 0.1f;
-            else if (PlayerMotionState.field_Private_Single_0 < 0.65f) speedMod = 0.5f;
-            else speedMod = 1.0f;
-            if (_lolimotion.Value) speedMod *= _avatarScaledSpeed;
-
-            float ovalWidth = inputMod * speedMod * strafeSpeed;
-            float ovalHeight = inputMod * speedMod * runSpeed;
-
-            // And now compute the multiplier which moves the input onto the oval
-            float t = TimeToOval(ovalWidth, ovalHeight, inputX, inputY);
-
-            // And finally apply t to get a point on the oval
-            Vector3 inputDirection = t * (inputX * Vector3.right + inputY * Vector3.forward);
-            return Quaternion.FromToRotation(trackerTransform.transform.up, Vector3.up) * trackerTransform.transform.rotation * inputDirection;
         }
     }
 }
