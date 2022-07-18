@@ -33,7 +33,7 @@ namespace BetterLocomotion
     {
         public const string Name = "BetterLocomotion";
         public const string Author = "Gay fox boy, Davi & AxisAngle";
-        public const string Version = "1.3.0";
+        public const string Version = "1.3.1";
     }
 
     internal static class UIXManager { public static void OnApplicationStart() => ExpansionKitApi.OnUiManagerInit += Main.VRChat_OnUiManagerInit; }
