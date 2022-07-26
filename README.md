@@ -24,6 +24,9 @@ Successor of [BetterDirections](https://github.com/d-magit/VRC-Mods).
 ## Dependency
 - [UIExpansionKit](https://github.com/knah/VRCMods#ui-expansion-kit) to change settings.
 
+## Related Canny post:
+- https://feedback.vrchat.com/vrchat-ik-20/p/add-hip-rotation-based-movement-for-4-point-tracking
+
 ## Credit/Special thanks
 - Davi's [BetterDirection](https://github.com/d-magit/VRC-Mods) mod (original mod)
 - [AxisAngle](https://twitter.com/DonaldFReynolds) (for the logic with angles/movement)
