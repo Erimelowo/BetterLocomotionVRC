@@ -1,4 +1,4 @@
-## Since [VRChat decided to completely kill modding with EAC](https://hello.vrchat.com/blog/vrchat-security-update), the VRC version of this mod won't be getting updated anymore. You can find the ChilloutVR version of Betterlocomotion [here](https://github.com/Louka3000/BetterLocomotionCVR).
+## Since [VRChat decided to completely kill modding with EAC](https://hello.vrchat.com/blog/vrchat-security-update), the VRC version of this mod won't be getting updated anymore. You can find the ChilloutVR version of BetterLocomotion [here](https://github.com/Louka3000/BetterLocomotionCVR).
 
 # BetterLocomotion
 A VRChat mod to enhance locomotion for VRChat using MelonLoader.  
